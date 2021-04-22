@@ -1,0 +1,2 @@
+Reaper,Datagrip,Github,Pycharm,Chrome,Gedit,Terminal,Reddit
+'/opt/REAPER/reaper', 'jetbrains-datagrip', 'github', 'jetbrains-pycharm', 'google-chrome', 'gedit', 'gnome-terminal', 'gnome-terminal -e "bash -c \"rtv; exec bash\""'
