@@ -60,6 +60,11 @@ def main_page(password):
     current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config).iloc[0]
     current_schedule = sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
     quote = get('http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en')
+    try:
+        test ='{quoteText} - {quoteAuthor}'.format(**loads(quote.text))
+    except:
+        main_page(password)
+
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])
 
     print(
@@ -193,14 +198,13 @@ def programs_page(password, programs, config):
 def refresh(offset, password, config):
     os.system('clear')
     pyfiglet.print_figlet('Timetable', colors=config[3][1])
-    tasks = sql_to_dataframe('task_list', 'School', password, config)
+    tasks = sql_to_dataframe('vw_jobs', 'timetable', password, config)
     if len(tasks) > 0:
         current_task = tasks.iloc[offset]
         print(t.strftime("%Y-%m-%d", t.localtime()))
         print('Jobs to do: ' + str(len(tasks)))
-        print('Current Task: ' + current_task['task_name'])
-        print('Due: ' + str(current_task['task_date'])[0:10]+'\n')
-        print('y for done\n\ns for Skip\n\nr for Refresh\n\nq for exit\n\nl for list all: ')
+        print('Current Task: ' + current_task[1] + ' ' + current_task[2])
+        print('y for done\n\ns for Skip\n\nr for Refresh\n\nq for exit\n\n')
         response = readchar.readkey()
 
         if response == 'q':
@@ -214,31 +218,6 @@ def refresh(offset, password, config):
             if offset < len(tasks) - 1:
                 offset += 1
             refresh(offset, password, config)
-        elif response == 'l':
-            os.system('clear')
-            pyfiglet.print_figlet('Timetable', colors=config[3][1])
-            print('Jobs to do: ' + str(len(tasks)))
-
-            for row in sorted(tasks['task_name']):
-                print(tasks.loc[tasks['task_name'] == row]['task_name'].values[0] + ' : ' + str(
-                    tasks.loc[tasks['task_name'] == row]['task_date'].values[0])[0:10])
-            print('Press Y to set all to done or press any key to return to main: ')
-            exe = readchar.readkey()
-            if exe == 'Y':
-                for row in tasks.index:
-                    current_task = tasks.loc[row]
-                    if current_task[0][1] == 'd':
-                        sm_done_due(current_task[0], password, config)
-                        main_page(password)
-                    elif current_task[0][1] == 'n':
-                        sm_done_not_due(current_task[0], password, config)
-                        main_page(password)
-                    elif current_task[0][1] == 'r':
-                        sm_done_recurring(current_task[0], password, config)
-                        main_page(password)
-                refresh(offset, password, config)
-            else:
-                refresh(offset, password, config)
         elif response == 'y':
             offset = 0
             if current_task[0][1] == 'd':
