@@ -2,30 +2,41 @@ import os
 import sys
 import time
 import time as t
-
 import pandas
 import pyfiglet
 import readchar
 import sqlalchemy
+from requests import get
+from json import loads
 
 
-def sm_done_class(task_id, password, config):
+def sm_done_recurring(task_id, password, config):
     SQL_Username = config[0][1]
     SQL_driver = config[4][1]
-    db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/School'
+    db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
     connection = sqlalchemy.create_engine(db_connection_str)
     id = int("".join(filter(str.isdigit, task_id)))
-    query = 'Update classes set revision = revision + 1, last_date = now() where task_id = ' + str(id)
+    query = 'Update tbl_jobs_recurring set last_date = now() where id = ' + str(id)
     connection.execute(query)
 
 
-def sm_done_assessment(task_id, password, config):
+def sm_done_due(task_id, password, config):
     SQL_Username = config[0][1]
     SQL_driver = config[4][1]
-    db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/School'
+    db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
     connection = sqlalchemy.create_engine(db_connection_str)
     id = int("".join(filter(str.isdigit, task_id)))
-    query = 'Update assessments set done = 1 where id = ' + str(id)
+    query = 'Update tbl_jobs_due set done = 1 where id = ' + str(id)
+    connection.execute(query)
+
+
+def sm_done_not_due(task_id, password, config):
+    SQL_Username = config[0][1]
+    SQL_driver = config[4][1]
+    db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
+    connection = sqlalchemy.create_engine(db_connection_str)
+    id = int("".join(filter(str.isdigit, task_id)))
+    query = 'Update tbl_jobs_not_due set done = 1 where id = ' + str(id)
     connection.execute(query)
 
 
@@ -38,7 +49,6 @@ def sql_to_dataframe(table_name, database, password, config):
     return df
 
 
-
 def main_page(password):
     response = ''
     os.chdir(os.path.dirname(sys.argv[0]))
@@ -47,18 +57,20 @@ def main_page(password):
     programs = pandas.read_csv('./config/programs.csv', header=None).values
     config = pandas.read_csv('./config/config.csv').values
     os.chdir(config[1][1])
-    current_task = sql_to_dataframe('task_list', 'School', password, config).iloc[0]
-
+    current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config).iloc[0]
+    current_schedule = sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
+    quote = get('http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en')
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])
 
     print(
-        'A collection of projects, made mostly for myself and will most likely not work on other machines, created so I '
-        'can easily run my work\n\n' +
+        '{quoteText} - {quoteAuthor}'.format(**loads(quote.text)) + '\n\n' +
         time.strftime("%Y-%m-%d %H:%M", time.localtime()) +
         '\n\n'
-        'Current Job: ' + current_task[1] +
-        '\n\n'
-        'Show info - r'
+        'Current Job: ' + current_task[1] + ' ' + current_task[2] + '\n'
+                                                                    'Next Event: ' + current_schedule[1] + ' ' +
+        current_schedule[2] +
+        ' at ' + current_schedule[4].strftime('%-I:%M %p') + ' on ' + current_schedule[3].strftime('%a') +
+        '\n\n'        'Show info - r'
         '\n\n'
         'Time Table - t'
         '\n\n'
@@ -89,11 +101,14 @@ def main_page(password):
         refresh(0, password, config)
 
     elif response == 'y':
-        if current_task['id'][0] == 't':
-            sm_done_class(current_task['id'], password, config)
+        if current_task[0][1] == 'd':
+            sm_done_due(current_task[0], password, config)
             main_page(password)
-        elif current_task['id'][0] == 'a':
-            sm_done_assessment(current_task['id'], password, config)
+        elif current_task[0][1] == 'n':
+            sm_done_not_due(current_task[0], password, config)
+            main_page(password)
+        elif current_task[0][1] == 'r':
+            sm_done_recurring(current_task[0], password, config)
             main_page(password)
 
 
@@ -184,8 +199,8 @@ def refresh(offset, password, config):
         print(t.strftime("%Y-%m-%d", t.localtime()))
         print('Jobs to do: ' + str(len(tasks)))
         print('Current Task: ' + current_task['task_name'])
-        print('Due: ' + str(current_task['task_date'])[0:10])
-        print('y for done\ns for Skip\nr for Refresh\nq for exit\nl for list all: ')
+        print('Due: ' + str(current_task['task_date'])[0:10]+'\n')
+        print('y for done\n\ns for Skip\n\nr for Refresh\n\nq for exit\n\nl for list all: ')
         response = readchar.readkey()
 
         if response == 'q':
@@ -212,21 +227,29 @@ def refresh(offset, password, config):
             if exe == 'Y':
                 for row in tasks.index:
                     current_task = tasks.loc[row]
-                    if current_task['id'][0] == 't':
-                        sm_done_class(current_task['id'], password, config)
-                    elif current_task['id'][0] == 'a':
-                        sm_done_assessment(current_task['id'], password, config)
+                    if current_task[0][1] == 'd':
+                        sm_done_due(current_task[0], password, config)
+                        main_page(password)
+                    elif current_task[0][1] == 'n':
+                        sm_done_not_due(current_task[0], password, config)
+                        main_page(password)
+                    elif current_task[0][1] == 'r':
+                        sm_done_recurring(current_task[0], password, config)
+                        main_page(password)
                 refresh(offset, password, config)
             else:
                 refresh(offset, password, config)
         elif response == 'y':
             offset = 0
-            if current_task['id'][0] == 't':
-                sm_done_class(current_task['id'], password, config)
-                refresh(offset, password, config)
-            elif current_task['id'][0] == 'a':
-                sm_done_assessment(current_task['id'], password, config)
-                refresh(offset, password, config)
+            if current_task[0][1] == 'd':
+                sm_done_due(current_task[0], password, config)
+                main_page(password)
+            elif current_task[0][1] == 'n':
+                sm_done_not_due(current_task[0], password, config)
+                main_page(password)
+            elif current_task[0][1] == 'r':
+                sm_done_recurring(current_task[0], password, config)
+                main_page(password)
         else:
             refresh(offset, password, config)
     else:
@@ -245,7 +268,7 @@ def start():
     while True:
         try:
             password = input('Password: ')
-            sql_to_dataframe('task_list', 'School', password, config)
+            sql_to_dataframe('tbl_jobs_due', 'timetable', password, config)
             break
         except:
             print("Oops!  That not the password.  Try again...")

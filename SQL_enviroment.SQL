@@ -1,75 +1,136 @@
-CREATE DATABASE IF NOT EXISTS  `School` ;
-
-USE `School`;
-
-
-
-DROP TABLE IF EXISTS `assessments`;
-CREATE TABLE `assessments` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `class` varchar(32) DEFAULT NULL,
-  `name` varchar(64) DEFAULT NULL,
-  `due_date` date DEFAULT NULL,
-  `days_to_do` int DEFAULT NULL,
-  `done` int DEFAULT NULL,
-  PRIMARY KEY (`id`));
-
-
-
-DROP TABLE IF EXISTS `classes`;
-CREATE TABLE `classes`
+create table ref_week_conversion
 (
-    `task_id`            int       NOT NULL AUTO_INCREMENT,
-    `Subject_Code`       varchar(64)    DEFAULT NULL,
-    `Subject_Dscription` varchar(128)   DEFAULT NULL,
-    `Group`              varchar(64)    DEFAULT NULL,
-    `Activity`           varchar(64)    DEFAULT NULL,
-    `Day`                varchar(8)     DEFAULT NULL,
-    `Class_time`         time           DEFAULT NULL,
-    `Campus`             varchar(16)    DEFAULT NULL,
-    `Location`           varchar(32)    DEFAULT NULL,
-    `staff`              varchar(64)    DEFAULT NULL,
-    `Duration`           float          DEFAULT NULL,
-    `Date`               date           DEFAULT NULL,
-    `Class_Description`  varchar(64)    DEFAULT NULL,
-    `Year`               int            DEFAULT NULL,
-    `Sem`                int            DEFAULT NULL,
-    `week`               int            DEFAULT NULL,
-    `revision`           int            DEFAULT NULL,
-    `last_date`          timestamp NULL DEFAULT NULL,
-    `done`               int            DEFAULT NULL,
-    PRIMARY KEY (`task_id`)
+	date date null,
+	day varchar(3) null,
+	week int null,
+	cycle int null,
+	term int null,
+	semester int null,
+	year int null
 );
 
-create definer = fonzzy@localhost view task_list as
-select `a`.`id` AS `id`, `a`.`task_name` AS `task_name`, `a`.`task_date` AS `task_date`, `a`.`priority` AS `priority`
-from (select concat('t_', `School`.`classes`.`task_id`)                                                           AS `id`,
-             concat(left(`School`.`classes`.`Subject_Code`, 7), ' Week ', `School`.`classes`.`week`, ' ',
-                    `School`.`classes`.`Group`, ' Rev ',
-                    `School`.`classes`.`revision`)                                                                AS `task_name`,
-             (`School`.`classes`.`Date` + interval (case
-                                                        when (`School`.`classes`.`revision` = 0) then 0
-                                                        when (`School`.`classes`.`revision` = 1) then 3
-                                                        when (`School`.`classes`.`revision` = 2) then 7
-                                                        else ((`School`.`classes`.`revision` - 2) * 14) end) day) AS `task_date`,
-             (case when (`School`.`classes`.`revision` = 0) then 0.1 else 1 end)                                  AS `priority`
-      from `School`.`classes`
-      where ((`School`.`classes`.`Date` <= now()) and ((`School`.`classes`.`done` <> 1) or
-                                                       ((`School`.`classes`.`done` = 1) and
-                                                        (`School`.`classes`.`revision` = 0))) and
-             ((`School`.`classes`.`Date` + interval (case
-                                                         when (`School`.`classes`.`revision` = 0) then 0
-                                                         when (`School`.`classes`.`revision` = 1) then 3
-                                                         when (`School`.`classes`.`revision` = 2) then 7
-                                                         else ((`School`.`classes`.`revision` - 2) * 14) end) day) <=
-              now()))
+create table tbl_jobs_due
+(
+	id int auto_increment
+		primary key,
+	project varchar(32) null,
+	description varchar(64) null,
+	length float null,
+	due_date date null,
+	due_time time null,
+	done binary(1) null
+);
+
+create table tbl_jobs_not_due
+(
+	id int auto_increment
+		primary key,
+	project varchar(32) null,
+	description varchar(64) null,
+	length float null,
+	done binary(1) null
+);
+
+create table tbl_jobs_recurring
+(
+	id int auto_increment
+		primary key,
+	project varchar(32) null,
+	description varchar(64) null,
+	length float null,
+	redo_time int null,
+	last_date date null,
+	done binary(1) null
+);
+
+create table tbl_schedule_one_off
+(
+	id int auto_increment
+		primary key,
+	project varchar(32) null,
+	description varchar(64) null,
+	date date null,
+	time time null,
+	length float null,
+	location varchar(32) null
+);
+
+create table tbl_schedule_recurring
+(
+	id int auto_increment
+		primary key,
+	project varchar(32) null,
+	description varchar(64) null,
+	day varchar(3) null,
+	time time null,
+	length float null,
+	location varchar(32) null,
+	done binary(1) null
+);
+
+create definer = fonzzy@localhost view vw_jobs as
+	select `c`.`concat('jd_',id)` AS `concat('jd_',id)`,
+       `c`.`project`          AS `project`,
+       `c`.`description`      AS `description`,
+       `c`.`length`           AS `length`,
+       `c`.`due_date`         AS `due_date`,
+       `c`.`due_time`         AS `due_time`
+from (select concat('jd_', `timetable`.`tbl_jobs_due`.`id`) AS `concat('jd_',id)`,
+             `timetable`.`tbl_jobs_due`.`project`           AS `project`,
+             `timetable`.`tbl_jobs_due`.`description`       AS `description`,
+             `timetable`.`tbl_jobs_due`.`length`            AS `length`,
+             `timetable`.`tbl_jobs_due`.`due_date`          AS `due_date`,
+             `timetable`.`tbl_jobs_due`.`due_time`          AS `due_time`
+      from `timetable`.`tbl_jobs_due`
+      where (`timetable`.`tbl_jobs_due`.`done` is null)
       union all
-      select concat('a', `School`.`assessments`.`id`)                                   AS `id`,
-             concat(`School`.`assessments`.`class`, ' ', `School`.`assessments`.`name`) AS `task_name`,
-             `School`.`assessments`.`due_date`                                          AS `task_date`,
-             ((to_days(`School`.`assessments`.`due_date`) - to_days(now())) /
-              (1 + `School`.`assessments`.`days_to_do`))                                AS `priority`
-      from `School`.`assessments`
-      where (((`School`.`assessments`.`due_date` + interval (-(1) * `School`.`assessments`.`days_to_do`) day) <=
-              now()) and (`School`.`assessments`.`done` is null))) `a`
-order by `a`.`priority`, `a`.`task_date`;
+      select concat('jn_', `timetable`.`tbl_jobs_not_due`.`id`) AS `concat('jn_',id)`,
+             `timetable`.`tbl_jobs_not_due`.`project`           AS `project`,
+             `timetable`.`tbl_jobs_not_due`.`description`       AS `description`,
+             `timetable`.`tbl_jobs_not_due`.`length`            AS `length`,
+             cast((now() + interval 2 week) as date)            AS `date(date_add(now(), interval 2 week))`,
+             '17:00:00'                                         AS `17:00:00`
+      from `timetable`.`tbl_jobs_not_due`
+      where (`timetable`.`tbl_jobs_not_due`.`done` is null)
+      union all
+      select concat('jr_', `timetable`.`tbl_jobs_recurring`.`id`)         AS `concat('jr_',id)`,
+             `timetable`.`tbl_jobs_recurring`.`project`                   AS `project`,
+             `timetable`.`tbl_jobs_recurring`.`description`               AS `description`,
+             `timetable`.`tbl_jobs_recurring`.`length`                    AS `length`,
+             (`timetable`.`tbl_jobs_recurring`.`last_date` +
+              interval `timetable`.`tbl_jobs_recurring`.`redo_time` week) AS `date_add(last_date, interval redo_time week )`,
+             '17:00:00'                                                   AS `17:00:00`
+      from `timetable`.`tbl_jobs_recurring`
+      where (`timetable`.`tbl_jobs_recurring`.`done` is null)) `c`
+order by `c`.`due_date`, `c`.`due_time`;
+
+create definer = fonzzy@localhost view vw_schedule as
+	select `c`.`concat('sr_',id)` AS `concat('sr_',id)`,
+       `c`.`project`          AS `project`,
+       `c`.`description`      AS `description`,
+       `c`.`date`             AS `date`,
+       `c`.`time`             AS `time`,
+       `c`.`location`         AS `location`,
+       `c`.`length`           AS `length`
+from (select concat('sr_', `s`.`id`) AS `concat('sr_',id)`,
+             `s`.`project`           AS `project`,
+             `s`.`description`       AS `description`,
+             `r`.`date`              AS `date`,
+             `s`.`time`              AS `time`,
+             `s`.`location`          AS `location`,
+             `s`.`length`            AS `length`
+      from (`timetable`.`tbl_schedule_recurring` `s`
+               join `timetable`.`ref_week_conversion` `r` on (((`s`.`day` = `r`.`day`) and (`s`.`done` is null))))
+      union all
+      select concat('sof_', `timetable`.`tbl_schedule_one_off`.`id`) AS `concat('sof_',id)`,
+             `timetable`.`tbl_schedule_one_off`.`project`            AS `project`,
+             `timetable`.`tbl_schedule_one_off`.`description`        AS `description`,
+             `timetable`.`tbl_schedule_one_off`.`date`               AS `date`,
+             `timetable`.`tbl_schedule_one_off`.`time`               AS `time`,
+             `timetable`.`tbl_schedule_one_off`.`location`           AS `location`,
+             `timetable`.`tbl_schedule_one_off`.`length`             AS `length`
+      from `timetable`.`tbl_schedule_one_off`) `c`
+where ((now() < ((cast(`c`.`date` as datetime) + cast(`c`.`time` as time)) + interval `c`.`length` hour)) and
+       (`c`.`date` < (now() + interval 1 week)))
+order by `c`.`date`, `c`.`time`;
+
