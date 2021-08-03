@@ -40,12 +40,16 @@ def sm_done_not_due(task_id, password, config):
     connection.execute(query)
 
 
-def sql_to_dataframe(table_name, database, password, config):
+def sql_to_dataframe(table_name, database, password, config, where = ''):
     SQL_Username = config[0][1]
     SQL_driver = config[4][1]
     db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/' + database
     connection = sqlalchemy.create_engine(db_connection_str)
-    df = pandas.read_sql_table(table_name, con=connection)
+    if where == '':
+        df = pandas.read_sql_table(table_name, con=connection)
+    else:
+        query = 'select * from ' + table_name + ' where ' + where + ';'
+        df = pandas.read_sql_query(query, con=connection)
     return df
 
 
@@ -57,7 +61,18 @@ def main_page(password):
     programs = pandas.read_csv('./config/programs.csv', header=None).values
     config = pandas.read_csv('./config/config.csv').values
     os.chdir(config[1][1])
-    current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config).iloc[0]
+    try:
+        current_mode = sql_to_dataframe('vw_current_schedule', 'timetable', password, config).iloc[0,1]
+    except IndexError:
+        current_mode = ''
+
+    try:
+        if current_mode != '':
+            current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config, where='project = \'' + current_mode + '\'').iloc[0]
+        else:
+            current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config)
+    except IndexError:
+         current_task = '     '
     current_schedule = sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
     current_schedule_next = sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[1]
     quote = get('http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en')
@@ -250,7 +265,7 @@ def start():
             sql_to_dataframe('tbl_jobs_due', 'timetable', password, config)
             break
         except Exception as e:
-            print("Oops!  That not the password.  Try again...")
+            print(e)#"Oops!  That not the password.  Try again...")
 
     main_page(password)
 
