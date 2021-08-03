@@ -59,6 +59,7 @@ def main_page(password):
     os.chdir(config[1][1])
     current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config).iloc[0]
     current_schedule = sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
+    current_schedule_next = sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[1]
     quote = get('http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en')
     try:
         test ='{quoteText} - {quoteAuthor}'.format(**loads(quote.text))
@@ -71,10 +72,9 @@ def main_page(password):
         '{quoteText} - {quoteAuthor}'.format(**loads(quote.text)) + '\n\n' +
         time.strftime("%Y-%m-%d %H:%M", time.localtime()) +
         '\n\n'
-        'Current Job: ' + current_task[1] + ' ' + current_task[2] + '\n'
-                                                                    'Next Event: ' + current_schedule[1] + ' ' +
-        current_schedule[2] +
-        ' at ' + current_schedule[4].strftime('%-I:%M %p') + ' on ' + current_schedule[3].strftime('%a') +
+        'Current Job: ' + current_task[1] + ' ' + current_task[2] + '\n' +
+        'Next Event: ' + current_schedule[1] + ' - ' + current_schedule[2] +' at ' + current_schedule[4].strftime('%-I:%M %p') + ' on ' + current_schedule[3].strftime('%a') + '\n' +
+        'Coming Up: ' + current_schedule_next[1] + ' - ' + current_schedule_next[2] + ' at ' + current_schedule_next[4].strftime('%-I:%M %p') + ' on ' + current_schedule_next[3].strftime('%a') + '\n' +
         '\n\n'        'Show info - r'
         '\n\n'
         'Time Table - t'
@@ -249,7 +249,7 @@ def start():
             password = input('Password: ')
             sql_to_dataframe('tbl_jobs_due', 'timetable', password, config)
             break
-        except:
+        except Exception as e:
             print("Oops!  That not the password.  Try again...")
 
     main_page(password)
