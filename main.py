@@ -1,13 +1,14 @@
 import os
 import sys
 import time
-import time as t
 import pandas
+import pandas as pd
 import pyfiglet
 import readchar
 import sqlalchemy
 from requests import get
 from json import loads
+
 
 
 def sm_done_recurring(task_id, password, config):
@@ -53,6 +54,7 @@ def sql_to_dataframe(table_name, database, password, config, where = ''):
     return df
 
 
+
 def main_page(password):
     response = ''
     os.chdir(os.path.dirname(sys.argv[0]))
@@ -65,12 +67,11 @@ def main_page(password):
         current_mode = sql_to_dataframe('vw_current_schedule', 'timetable', password, config).iloc[0,1]
     except IndexError:
         current_mode = ''
-
     try:
         if current_mode != '':
             current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config, where='project = \'' + current_mode + '\'').iloc[0]
         else:
-            current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config)
+            current_task = sql_to_dataframe('vw_jobs', 'timetable', password, config).iloc[0]
     except IndexError:
          current_task = '     '
     current_schedule = sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
@@ -80,7 +81,6 @@ def main_page(password):
         test ='{quoteText} - {quoteAuthor}'.format(**loads(quote.text))
     except:
         main_page(password)
-
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])
 
     print(
@@ -213,46 +213,26 @@ def programs_page(password, programs, config):
 def refresh(offset, password, config):
     os.system('clear')
     pyfiglet.print_figlet('Timetable', colors=config[3][1])
-    tasks = sql_to_dataframe('vw_jobs', 'timetable', password, config)
-    if len(tasks) > 0:
-        current_task = tasks.iloc[offset]
-        print(t.strftime("%Y-%m-%d", t.localtime()))
-        print('Jobs to do: ' + str(len(tasks)))
-        print('Current Task: ' + current_task[1] + ' ' + current_task[2])
-        print('y for done\n\ns for Skip\n\nr for Refresh\n\nq for exit\n\n')
-        response = readchar.readkey()
+    timetable = pd.DataFrame(columns=['Time','MON','TUE','WED','THU','FRI','SAT','SUN'])
+    timetable['Time'] = ['06','07','08','09', '10','11','12','13','14','15','16','17','18','19','20','21','22','23','24']
+    timetable.index = timetable['Time']
+    for day in ['MON','TUE','WED','THU','FRI','SAT','SUN']:
+        for time in timetable['Time']:
+            clause = 'day = \''+str(day)+'\' and start <= \'' + str(time) + ':00:00\' and end > \'' + str(time) + ':00:00\' '
+            val = sql_to_dataframe('vw_week_calendar', 'timetable', password, config, where = clause)
+            if not val.empty:
+                text = str(val.loc[0][0] + '-' + val.loc[0][1]).center(16,' ')
+            else:
+                text = '     ######     '
+            timetable[day][time] = text
+            os.system('clear')
+            pyfiglet.print_figlet('Timetable', colors=config[3][1])
+            print(timetable.to_string(index=False, col_space=[4, 16, 16, 16, 16, 16, 16, 16], justify='center'))
+            print('Press any key to return')
 
-        if response == 'q':
-            response = 1
-            if response == 1:
-                main_page(password)
-        elif response == 'r':
-            offset = 0
-            refresh(offset, password, config)
-        elif response == 's':
-            if offset < len(tasks) - 1:
-                offset += 1
-            refresh(offset, password, config)
-        elif response == 'y':
-            offset = 0
-            if current_task[0][1] == 'd':
-                sm_done_due(current_task[0], password, config)
-                main_page(password)
-            elif current_task[0][1] == 'n':
-                sm_done_not_due(current_task[0], password, config)
-                main_page(password)
-            elif current_task[0][1] == 'r':
-                sm_done_recurring(current_task[0], password, config)
-                main_page(password)
-        else:
-            refresh(offset, password, config)
-    else:
-        print('No Jobs')
-        print('return to main')
-        response = readchar.readkey()
-        if response:
-            main_page(password)
-
+    response = readchar.readkey()
+    if response:
+        main_page(password)
 
 def start():
     os.system('clear')
@@ -265,7 +245,7 @@ def start():
             sql_to_dataframe('tbl_jobs_due', 'timetable', password, config)
             break
         except Exception as e:
-            print(e)#"Oops!  That not the password.  Try again...")
+            print("Oops!  That not the password.  Try again...")
 
     main_page(password)
 
