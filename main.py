@@ -59,8 +59,8 @@ def main_page(password):
         current_task = '     '
 
     # select the schedule items for current and next
-    current_schedule = util.sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
-    current_schedule_next = util.sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[1]
+    current_schedule = util.sql_to_dataframe('vw_current_schedule', 'timetable', password, config).iloc[0]
+    current_schedule_next = util.sql_to_dataframe('vw_next_schedule', 'timetable', password, config).iloc[0]
 
     # Print the page
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])

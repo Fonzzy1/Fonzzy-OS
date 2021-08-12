@@ -117,14 +117,14 @@ create table tbl_work
 	comments text null
 );
 
-create  view vw_current_schedule as
-	select `timetable`.`vw_schedule`.`concat('sr_',id)` AS `concat('sr_',id)`,
-       `timetable`.`vw_schedule`.`project`          AS `project`,
-       `timetable`.`vw_schedule`.`description`      AS `description`,
-       `timetable`.`vw_schedule`.`date`             AS `date`,
-       `timetable`.`vw_schedule`.`time`             AS `time`,
-       `timetable`.`vw_schedule`.`location`         AS `location`,
-       `timetable`.`vw_schedule`.`length`           AS `length`
+create view vw_current_schedule as
+	select `timetable`.`vw_schedule`.`id`          AS `id`,
+       `timetable`.`vw_schedule`.`project`     AS `project`,
+       `timetable`.`vw_schedule`.`description` AS `description`,
+       `timetable`.`vw_schedule`.`date`        AS `date`,
+       `timetable`.`vw_schedule`.`time`        AS `time`,
+       `timetable`.`vw_schedule`.`location`    AS `location`,
+       `timetable`.`vw_schedule`.`length`      AS `length`
 from `timetable`.`vw_schedule`
 where ((now() >= (cast(`timetable`.`vw_schedule`.`date` as datetime) +
                   interval ((`timetable`.`vw_schedule`.`time` / 10000) * 60) minute)) and (now() <=
@@ -133,9 +133,11 @@ where ((now() >= (cast(`timetable`.`vw_schedule`.`date` as datetime) +
                                                                                                     ((`timetable`.`vw_schedule`.`time` +
                                                                                                       (`timetable`.`vw_schedule`.`length` * 10000)) /
                                                                                                      10000) *
-                                                                                                    60) minute)));
+                                                                                                    60) minute)))
+order by `timetable`.`vw_schedule`.`id`
+limit 1;
 
-create  view vw_cycle as
+create view vw_cycle as
 	select `a`.`name`        AS `cycle`,
        `a`.`number`      AS `number`,
        `b`.`date`        AS `date`,
@@ -204,7 +206,7 @@ from ((select 'week' AS `name`, min(`timetable`.`ref_week_conversion`.`week`) AS
                        where (`timetable`.`ref_week_conversion`.`date` >= cast(now() as date))))) `b`
               on ((`a`.`name` = `b`.`name`)));
 
-create  view vw_cycle_expense as
+create view vw_cycle_expense as
 	select `exp`.`name`                                       AS `name`,
        `exp`.`cat`                                        AS `cat`,
        ((`exp`.`value` - `exp`.`progress`) / greatest((`ref`.`work cycle` - (select `timetable`.`vw_cycle`.`number`
@@ -233,7 +235,7 @@ from ((select `timetable`.`tbl_expenses`.`id`       AS `id`,
          join `timetable`.`ref_week_conversion` `ref` on ((`ref`.`date` = `exp`.`date`)))
 where (`exp`.`value` > `exp`.`progress`);
 
-create  view vw_jobs as
+create view vw_jobs as
 	select `c`.`id`          AS `id`,
        `c`.`project`     AS `project`,
        `c`.`description` AS `description`,
@@ -247,7 +249,9 @@ from (select concat('jd_', `timetable`.`tbl_jobs_due`.`id`) AS `id`,
              `timetable`.`tbl_jobs_due`.`due_date`          AS `due_date`,
              `timetable`.`tbl_jobs_due`.`due_time`          AS `due_time`
       from `timetable`.`tbl_jobs_due`
-      where (`timetable`.`tbl_jobs_due`.`done` is null)
+      where ((`timetable`.`tbl_jobs_due`.`done` is null) and (cast(now() as date) >=
+                                                              (`timetable`.`tbl_jobs_due`.`due_date` +
+                                                               interval (-(1) * `timetable`.`tbl_jobs_due`.`length`) day)))
       union all
       select concat('jn_', `timetable`.`tbl_jobs_not_due`.`id`) AS `id`,
              `timetable`.`tbl_jobs_not_due`.`project`           AS `project`,
@@ -266,10 +270,32 @@ from (select concat('jd_', `timetable`.`tbl_jobs_due`.`id`) AS `id`,
               interval `timetable`.`tbl_jobs_recurring`.`redo_time` week) AS `date_add(last_date, interval redo_time week )`,
              '17:00:00'                                                   AS `17:00:00`
       from `timetable`.`tbl_jobs_recurring`
-      where (`timetable`.`tbl_jobs_recurring`.`done` is null)) `c`
+      where ((`timetable`.`tbl_jobs_recurring`.`done` is null) and (cast(now() as date) >=
+                                                                    ((`timetable`.`tbl_jobs_recurring`.`last_date` +
+                                                                      interval `timetable`.`tbl_jobs_recurring`.`redo_time` week) +
+                                                                     interval (-(1) * `timetable`.`tbl_jobs_recurring`.`length`) day)))) `c`
 order by `c`.`due_date`, `c`.`due_time`, `c`.`id`;
 
-create  view vw_pay_split as
+create view vw_next_schedule as
+	select `timetable`.`vw_schedule`.`id`                  AS `id`,
+       `timetable`.`vw_schedule`.`project`             AS `project`,
+       `timetable`.`vw_schedule`.`description`         AS `description`,
+       `timetable`.`vw_schedule`.`date`                AS `date`,
+       (case
+            when ((cast(`timetable`.`vw_schedule`.`date` as datetime) +
+                   interval ((`timetable`.`vw_schedule`.`time` / 10000) * 60) minute) < now()) then (select cast(
+                                                                                                                    (`timetable`.`vw_current_schedule`.`time` +
+                                                                                                                     (10000 * `timetable`.`vw_current_schedule`.`length`)) as time)
+                                                                                                     from `timetable`.`vw_current_schedule`)
+            else `timetable`.`vw_schedule`.`time` end) AS `time`,
+       `timetable`.`vw_schedule`.`location`            AS `location`,
+       `timetable`.`vw_schedule`.`length`              AS `length`
+from `timetable`.`vw_schedule`
+where (`timetable`.`vw_schedule`.`id` <>
+       (select `timetable`.`vw_current_schedule`.`id` from `timetable`.`vw_current_schedule`))
+limit 1;
+
+create view vw_pay_split as
 	select `a`.`cat`                                                                                                AS `cat`,
        round(((sum(`a`.`value`) / (select `timetable`.`vw_work`.`total` from `timetable`.`vw_work`)) * 100), 0) AS `%`
 from (select `timetable`.`vw_cycle_expense`.`name`  AS `name`,
@@ -284,11 +310,14 @@ from (select `timetable`.`vw_cycle_expense`.`name`  AS `name`,
       from `timetable`.`vw_work`) `a`
 group by `a`.`cat`;
 
-create  view vw_payslip as
-	select `timetable`.`ref_week_conversion`.`date`                                                                    AS `date`,
-       `timetable`.`ref_week_conversion`.`day`                                                                     AS `day`,
-       sum((timestampdiff(SECOND, `timetable`.`tbl_work`.`start_time`, `timetable`.`tbl_work`.`end_time`) /
-            3600))                                                                                                 AS `hours`
+create view vw_payslip as
+	select `timetable`.`ref_week_conversion`.`date` AS `date`,
+       `timetable`.`ref_week_conversion`.`day`  AS `day`,
+       sum((timestampdiff(SECOND, `timetable`.`tbl_work`.`start_time`, (case
+                                                                            when (`timetable`.`tbl_work`.`end_time` is null)
+                                                                                then now()
+                                                                            else `timetable`.`tbl_work`.`end_time` end)) /
+            3600))                              AS `hours`
 from (`timetable`.`ref_week_conversion`
          left join `timetable`.`tbl_work`
                    on ((cast(`timetable`.`tbl_work`.`start_time` as date) = `timetable`.`ref_week_conversion`.`date`)))
@@ -297,15 +326,15 @@ where (`timetable`.`ref_week_conversion`.`work cycle` = (select `timetable`.`vw_
                                                          where (`timetable`.`vw_cycle`.`cycle` = 'work')))
 group by `timetable`.`ref_week_conversion`.`day`, `timetable`.`ref_week_conversion`.`date`;
 
-create  view vw_schedule as
-	select `c`.`concat('sr_',id)` AS `concat('sr_',id)`,
-       `c`.`project`          AS `project`,
-       `c`.`description`      AS `description`,
-       `c`.`date`             AS `date`,
-       `c`.`time`             AS `time`,
-       `c`.`location`         AS `location`,
-       `c`.`length`           AS `length`
-from (select concat('sr_', `s`.`id`) AS `concat('sr_',id)`,
+create view vw_schedule as
+	select `c`.`id`          AS `id`,
+       `c`.`project`     AS `project`,
+       `c`.`description` AS `description`,
+       `c`.`date`        AS `date`,
+       `c`.`time`        AS `time`,
+       `c`.`location`    AS `location`,
+       `c`.`length`      AS `length`
+from (select concat('sr_', `s`.`id`) AS `id`,
              `s`.`project`           AS `project`,
              `s`.`description`       AS `description`,
              `r`.`date`              AS `date`,
@@ -325,15 +354,16 @@ from (select concat('sr_', `s`.`id`) AS `concat('sr_',id)`,
       from `timetable`.`tbl_schedule_one_off`) `c`
 where ((now() < ((cast(`c`.`date` as datetime) + cast(`c`.`time` as time)) + interval `c`.`length` hour)) and
        (`c`.`date` < (now() + interval 1 week)))
-order by `c`.`date`, `c`.`time`;
+order by `c`.`date`, `c`.`time`, `c`.`id`;
 
-create  view vw_week_calendar as
+create view vw_week_calendar as
 	select `c`.`project`                                                                                  AS `project`,
        `c`.`description`                                                                              AS `description`,
        `ref`.`day`                                                                                    AS `day`,
        cast((`c`.`date` + interval (`c`.`time` / 10000) hour) as time)                                AS `start`,
-       cast(((`c`.`date` + interval (`c`.`time` / 10000) hour) + interval `c`.`length` hour) as time) AS `end`
-from ((select concat('sr_', `s`.`id`) AS `concat('sr_',id)`,
+       cast(((`c`.`date` + interval (`c`.`time` / 10000) hour) + interval `c`.`length` hour) as time) AS `end`,
+       `c`.`id`                                                                                       AS `id`
+from ((select concat('sr_', `s`.`id`) AS `id`,
               `s`.`project`           AS `project`,
               `s`.`description`       AS `description`,
               `r`.`date`              AS `date`,
@@ -354,9 +384,10 @@ from ((select concat('sr_', `s`.`id`) AS `concat('sr_',id)`,
          join `timetable`.`ref_week_conversion` `ref` on ((`c`.`date` = `ref`.`date`)))
 where ((`ref`.`week` = (select `timetable`.`vw_cycle`.`number`
                         from `timetable`.`vw_cycle`
-                        where (`timetable`.`vw_cycle`.`cycle` = 'week'))) and (`ref`.`year` = year(now())));
+                        where (`timetable`.`vw_cycle`.`cycle` = 'week'))) and (`ref`.`year` = year(now())))
+order by `c`.`id`;
 
-create  view vw_work as
+create view vw_work as
 	select least((select sum(`timetable`.`vw_cycle_expense`.`value`) from `timetable`.`vw_cycle_expense`),
              (select min(`timetable`.`ref_pay_value`.`pay_take_home`)
               from `timetable`.`ref_pay_value`
@@ -385,5 +416,4 @@ create  view vw_work as
                  where ((`timetable`.`vw_cycle`.`cycle` = 'work') and
                         (`timetable`.`ref_week_conversion`.`date` >= cast(now() as date)) and
                         (`timetable`.`ref_week_conversion`.`workday` = 1))), 1)                      AS `Days Left`;
-
 

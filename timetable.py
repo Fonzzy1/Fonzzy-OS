@@ -37,7 +37,7 @@ def refresh(password, config):
         for time in timetable['Time']:
 
             # Check query of something exists in vw_week_calender, if not return '#####'
-            clause = 'day = \''+str(day)+'\' and start <= \'' + str(time) + ':00:00\' and end > \'' + str(time) + ':00:00\' '
+            clause = 'day = \''+str(day)+'\' and start <= \'' + str(time) + ':00:00\' and end > \'' + str(time) + ':00:00\' order by id asc limit 1'
             val = util.sql_to_dataframe('vw_week_calendar', 'timetable', password, config, where = clause)
             if not val.empty:
                 text = str(val.loc[0][0] + '-' + val.loc[0][1]).center(width_col,' ')
