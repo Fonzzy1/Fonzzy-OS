@@ -27,7 +27,7 @@ def programs_page(programs, config):
     response = util.dict_to_int(readchar.readkey())
     response = int(response)
     try:
-        os.system(call_list[response] + ' &')
+        os.system(call_list[response])
     except:
         pass
     os.system('clear')

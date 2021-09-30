@@ -43,24 +43,21 @@ def main_page(password):
     # Mode works such that if you are within a schedule item you will then be shown jobs with the same project
     # eg. if in schedule with project  'work' then only jobs with project 'work' will be shown
 
-    try:  # Test to see if anything is in table_vw_Current_schedule, if not will set current mode to ''
-        current_mode = util.sql_to_dataframe('vw_current_schedule', 'timetable', password, config).iloc[0, 1]
-    except IndexError:
-        current_mode = ''
+    current_job_list = util.sql_to_dataframe('vw_jobs', 'timetable', password, config)
+    work_job_list = util.get_notion_jobs(password, config)
 
-    # Select task list corresponding to the mode
-    try:
-        if current_mode != '':
-            current_task = util.sql_to_dataframe('vw_jobs', 'timetable', password, config,
-                                                 where='project = \'' + current_mode + '\'').iloc[0]
-        else:
-            current_task = util.sql_to_dataframe('vw_jobs', 'timetable', password, config).iloc[0]
-    except IndexError:
-        current_task = '     '
+    total_jobs = current_job_list.append(work_job_list, ignore_index=True)
+    total_jobs.sort_values(by=['index_score'], inplace=True, ignore_index=True, ascending=False)
+
+    current_task = total_jobs.iloc[0]
 
     # select the schedule items for current and next
-    current_schedule = util.sql_to_dataframe('vw_current_schedule', 'timetable', password, config).iloc[0]
-    current_schedule_next = util.sql_to_dataframe('vw_next_schedule', 'timetable', password, config).iloc[0]
+    try:
+        current_schedule = util.sql_to_dataframe('vw_current_schedule', 'timetable', password, config).iloc[0]
+        current_schedule_next = util.sql_to_dataframe('vw_next_schedule', 'timetable', password, config).iloc[0]
+    except IndexError:
+        current_schedule = util.sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
+        current_schedule_next = util.sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[1]
 
     # Print the page
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])
@@ -99,6 +96,7 @@ def main_page(password):
 
     # set jobs done
     elif response == 'y':
+
         if current_task[0][1] == 'd':
             util.sm_done_due(current_task[0], password, config)
             main_page(password)
@@ -107,6 +105,9 @@ def main_page(password):
             main_page(password)
         elif current_task[0][1] == 'r':
             util.sm_done_recurring(current_task[0], password, config)
+            main_page(password)
+        elif current_task[0][1] == 'w':
+            util.sm_done_notion(current_task[2], password, config)
             main_page(password)
 
     # Programs page
