@@ -14,13 +14,18 @@ def start():
 
 
     """
-    p = getpass.getpass()
+
+    try:
+        os.chdir('/home/fonzzy/Documents/Fonzzy-OS/config')
+        test = pandas.read_csv('config.csv')
+        test.iloc[1,1]
     
-    os.chdir(os.path.dirname(sys.argv[0]) + '/config')
+    except IndexError:
+        p = getpass.getpass()
     
-    files = [f for f in os.listdir('.') if os.path.isfile(f)]
-    for f in files:
-    	util.decrypt(f,p)
+        files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        for f in files:
+    	    util.decrypt(f,p)
     
     
     mainpage()
