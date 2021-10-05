@@ -12,14 +12,14 @@ import util
 from timetable import refresh
 from program import programs_page
 from project import project_page
+from new import new_js
 
-
-def main_page(password):
+def mainpage():
     """
     Main landing page for the OS with one key press  for each subsequent page
     Also includes job and scheduling system
 
-    password(str): SQL database password
+   
     """
 
     # retrieve inspirational quote, get statement often fails so loop try until it works
@@ -27,21 +27,20 @@ def main_page(password):
     try:
         test = '{quoteText} - {quoteAuthor}'.format(**loads(quote.text))
     except:
-        main_page(password)
+        mainpage()
 
     # Read the config file and push it to a dataframe
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     os.chdir(dname)
     os.system('clear')
-    file_types = pandas.read_csv('./config/file_types.csv', header=None).values
+    file_types = pandas.read_csv('./config/file_types.csv', header=None)
     programs = pandas.read_csv('./config/programs.csv', header=None).values
     config = pandas.read_csv('./config/config.csv').values
+    execs = pandas.read_csv('config/execs.psv',delimiter='|')
     os.chdir(config[1][1])
+    password = config[8][1]
 
-    # Mode, job and schedule reads from vw_schedule and vw_jobs
-    # Mode works such that if you are within a schedule item you will then be shown jobs with the same project
-    # eg. if in schedule with project  'work' then only jobs with project 'work' will be shown
 
     current_job_list = util.sql_to_dataframe('vw_jobs', 'timetable', password, config)
     work_job_list = util.get_notion_jobs(password, config)
@@ -50,15 +49,13 @@ def main_page(password):
     total_jobs.sort_values(by=['index_score'], inplace=True, ignore_index=True, ascending=False)
 
     current_task = total_jobs.iloc[0]
-
+    
     # select the schedule items for current and next
-    try:
-        current_schedule = util.sql_to_dataframe('vw_current_schedule', 'timetable', password, config).iloc[0]
-        current_schedule_next = util.sql_to_dataframe('vw_next_schedule', 'timetable', password, config).iloc[0]
-    except IndexError:
-        current_schedule = util.sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[0]
-        current_schedule_next = util.sql_to_dataframe('vw_schedule', 'timetable', password, config).iloc[1]
-
+    
+    schedule = util.sql_to_dataframe('vw_schedule', 'timetable', password, config, where = 'date + interval hour(time) hour + interval minute(time) + length * 60 minute > now() ' )
+    current_schedule = schedule.iloc[0]
+    current_schedule_next = schedule.iloc[1]
+    
     # Print the page
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])
 
@@ -67,10 +64,8 @@ def main_page(password):
         time.strftime("%Y-%m-%d %H:%M", time.localtime()) +
         '\n\n'
         'Current Job: ' + current_task[1] + ' ' + current_task[2] + '\n' +
-        'Next Event: ' + current_schedule[1] + ' - ' + current_schedule[2] + ' at ' + current_schedule[4].strftime(
-            '%-I:%M %p') + ' on ' + current_schedule[3].strftime('%a') + '\n' +
-        'Coming Up: ' + current_schedule_next[1] + ' - ' + current_schedule_next[2] + ' at ' + current_schedule_next[
-            4].strftime('%-I:%M %p') + ' on ' + current_schedule_next[3].strftime('%a') +
+        'Next Event: ' + current_schedule[1] + ' - ' + current_schedule[2] + ' at ' + str(current_schedule[4])[7:15] + ' on ' + current_schedule[3].strftime('%a') + '\n' +
+        'Coming Up: ' + current_schedule_next[1] + ' - ' + current_schedule_next[2] + ' at ' + str(current_schedule_next[ 4])[7:15] + ' on ' + current_schedule_next[3].strftime('%a') +
         '\n\n'
         'Time Table - t'
         '\n\n'
@@ -79,6 +74,8 @@ def main_page(password):
         'Other Projects - p'
         '\n\n'
         'Programs - o'
+        '\n\n'
+        'New - n'
         '\n\n'
         'Quit - q'
         '\n'
@@ -92,43 +89,58 @@ def main_page(password):
     # Timetable page
     if response == 't':
         refresh(password, config)
-        main_page(password)
+        mainpage()
 
     # set jobs done
     elif response == 'y':
 
         if current_task[0][1] == 'd':
             util.sm_done_due(current_task[0], password, config)
-            main_page(password)
+            mainpage()
         elif current_task[0][1] == 'n':
             util.sm_done_not_due(current_task[0], password, config)
-            main_page(password)
+            mainpage()
         elif current_task[0][1] == 'r':
             util.sm_done_recurring(current_task[0], password, config)
-            main_page(password)
+            mainpage()
         elif current_task[0][1] == 'w':
             util.sm_done_notion(current_task[2], password, config)
-            main_page(password)
+            mainpage()
 
     # Programs page
     elif response == 'o':
-        programs_page(programs, config)
-        main_page(password)
+        resp = programs_page(programs, config)
+        mainpage()
 
 
     elif response == 'p':
         initial_head = config[2][1] + '\'s Projects'
-        project_page(initial_head, config, file_types)
-        main_page(password)
+        project_page(initial_head, config, file_types, execs)
+        mainpage()
+
+    elif response =='n':
+        new_js(password,config)
+        mainpage()
+
+
 
     elif response == 'q':
         os.system('clear')
+        os.chdir(os.path.dirname(sys.argv[0]) + '/config')
+        p = config[9][1]
+        files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        for f in files:
+            util.encrypt(f,p)
         os.system('exit')
         quit(1)
 
     else:
-        main_page(password)
+        mainpage()
 
     response = readchar.readkey()
     if response:
-        main_page(password)
+        mainpage()
+
+
+if __name__ == '__main__':
+    mainpage()

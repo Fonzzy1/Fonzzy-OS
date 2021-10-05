@@ -1,0 +1,2 @@
+Vim,Tmux,Python,Ipython,R,Matlab,vpn-connect,vpn-disconnect,Browser,Local SQL,Work PROD,Work DEV,Work UAT,Redit,Stack Overflow,Weather,Terminal Config,FB fixer,Htop,Desktop Enviroment
+vim,tmux new-session \; split-window -h \; attach,python3,ipython3,R,matlab -nodisplay -nosplash,protonvpn-cli c,protonvpn-cli d,w3m www.google.com,,,,, rtv, python3 /home/fonzzy/Documents/Fonzzy-OS/socli_wrapper.py, python3 /home/fonzzy/Documents/Fonzzy-OS/weather.py ,sudo dpkg-reconfigure console-setup, sudo chmod 777 /dev/fb0, htop, sudo systemctl restart gdm

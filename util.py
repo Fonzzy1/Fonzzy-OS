@@ -5,6 +5,8 @@ import pandas
 import pandas as pd
 import sqlalchemy
 import notion.client
+from cryptography.fernet import Fernet
+import base64, hashlib
 
 '''
 set of functions to make everything a bit cleaner
@@ -98,6 +100,7 @@ def int_to_dict(int):
     ls_char = list(string.printable)
     ls_char.remove('n')
     ls_char.remove('b')  # remove n and b to work with projects page
+    ls_char.remove('m')
     char = ls_char[int]
     return char
 
@@ -110,6 +113,7 @@ def dict_to_int(str):
     ls_char = list(string.printable)
     ls_char.remove('n')
     ls_char.remove('b')  # remove n and b to work with projects page
+    ls_char.remove('m')
     index = ls_char.index(str)
     return index
 
@@ -140,3 +144,46 @@ def sm_done_notion(name, password, config):
     for row in cv.collection.get_rows(search=name):
         row.done = True
         row.status = 'done'
+        
+        
+        
+        
+def encrypt(filename, p):
+    """
+    Given a filename (str) and key (bytes), it encrypts the file and write it
+    """
+    my_password = p.encode()
+    key_int = hashlib.md5(my_password).hexdigest()
+    key = base64.urlsafe_b64encode(key_int.encode("utf-8"))
+    
+    f = Fernet(key)
+
+    with open(filename, "rb") as file:
+        # read all file data
+        file_data = file.read()
+
+    # encrypt data
+    encrypted_data = f.encrypt(file_data)
+
+    # write the encrypted file
+    with open(filename, "wb") as file:
+        file.write(encrypted_data)
+
+
+def decrypt(filename, p):
+    """
+    Given a filename (str) and key (bytes), it decrypts the file and write it
+    """
+    my_password = p.encode()
+    key_int = hashlib.md5(my_password).hexdigest()
+    key = base64.urlsafe_b64encode(key_int.encode("utf-8"))
+    
+    f = Fernet(key)
+    with open(filename, "rb") as file:
+        # read the encrypted data
+        encrypted_data = file.read()
+    # decrypt data
+    decrypted_data = f.decrypt(encrypted_data)
+    # write the original file
+    with open(filename, "wb") as file:
+        file.write(decrypted_data)

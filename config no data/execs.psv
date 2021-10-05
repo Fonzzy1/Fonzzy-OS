@@ -1,0 +1,23 @@
+key|value|wait
+vim|vim '{}'|0
+docx2txt|docx2txt '{}'|0
+fbi|fbi '{}'|0
+jupyter|jupyter nbconvert --to python '{}'|0
+matlab|matlab  -nodisplay -nosplash -r "run(''{}'')"|0
+knithtml|R -e 'rmarkdown::render("'{}'","html_document")'|1
+knitpdf| R -e 'rmarkdown::render("'{}'","pdf_document")'|1
+vid|mplayer -vo fbdev -vf scale=1920:1080 -fs '{}'|0
+fbgs|fbgs -xxl -b '{}'|0
+python|python3 '{}'|1
+ipython|ipython3 '{}'|1
+R|Rscript '{}'|1
+unrar|unrar e '{}'|0
+sqlhome|
+sqlprod|
+sqldev|
+sqluat|
+unzip|unzip '{}'|0
+tar|tar xvf '{}'|0
+pdf2txt|pdftotext '{}'|0
+caca|cacaview '{}'|0
+textvid|mplayer -vo caca -vf scale=1920:1080 -fs '{}'|0
