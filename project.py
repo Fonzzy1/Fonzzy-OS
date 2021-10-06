@@ -43,10 +43,7 @@ def project_page(response, config, file_types, execs):
     response = readchar.readkey()
 
     # make new file or folder for weather or not . in name
-    if util.dict_to_int(response) >= len(project_list):
-    	return
-    	
-    elif response == 'n':
+    if response == 'n':
         file_name = input("File Name: ")
         if '.' in file_name:
             os.system("touch " + file_name)
@@ -60,6 +57,8 @@ def project_page(response, config, file_types, execs):
         os.chdir('..')
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)
 
+    elif util.dict_to_int(response) >= len(project_list):
+    	return
     
     # open file with extension
     elif os.path.isfile(project_list[util.dict_to_int(response)]):
