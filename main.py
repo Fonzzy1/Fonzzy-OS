@@ -22,12 +22,6 @@ def mainpage():
    
     """
 
-    # retrieve inspirational quote, get statement often fails so loop try until it works
-    quote = get('http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en')
-    try:
-        test = '{quoteText} - {quoteAuthor}'.format(**loads(quote.text))
-    except:
-        mainpage()
 
     # Read the config file and push it to a dataframe
     abspath = os.path.abspath(__file__)
@@ -39,11 +33,11 @@ def mainpage():
     config = pandas.read_csv('./config/config.csv').values
     execs = pandas.read_csv('config/execs.psv',delimiter='|')
     os.chdir(config[1][1])
-    password = config[8][1]
+    password = config[5][1]
 
 
     current_job_list = util.sql_to_dataframe('vw_jobs', 'timetable', password, config)
-    work_job_list = util.get_notion_jobs(password, config)
+    work_job_list = util.get_work(password, config)
 
     total_jobs = current_job_list.append(work_job_list, ignore_index=True)
     total_jobs.sort_values(by=['index_score'], inplace=True, ignore_index=True, ascending=False)
@@ -60,9 +54,7 @@ def mainpage():
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])
 
     print(
-        '{quoteText} - {quoteAuthor}'.format(**loads(quote.text)) + '\n\n' +
-        time.strftime("%Y-%m-%d %H:%M", time.localtime()) +
-        '\n\n'
+        time.strftime("%Y-%m-%d %H:%M", time.localtime())  + '\n\n' +
         'Current Job: ' + current_task[1] + ' ' + current_task[2] + '\n' +
         'Next Event: ' + current_schedule[1] + ' - ' + current_schedule[2] + ' at ' + str(current_schedule[4])[7:15] + ' on ' + current_schedule[3].strftime('%a') + '\n' +
         'Coming Up: ' + current_schedule_next[1] + ' - ' + current_schedule_next[2] + ' at ' + str(current_schedule_next[ 4])[7:15] + ' on ' + current_schedule_next[3].strftime('%a') +
@@ -104,7 +96,7 @@ def mainpage():
             util.sm_done_recurring(current_task[0], password, config)
             mainpage()
         elif current_task[0][1] == 'w':
-            util.sm_done_notion(current_task[2], password, config)
+            util.done_work(current_task[2], password, config)
             mainpage()
 
     # Programs page
@@ -127,7 +119,7 @@ def mainpage():
     elif response == 'q':
         os.system('clear')
         os.chdir(os.path.dirname(sys.argv[0]) + '/config')
-        p = config[9][1]
+        p = config[6][1]
         files = [f for f in os.listdir('.') if os.path.isfile(f)]
         for f in files:
             util.encrypt(f,p)

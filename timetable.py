@@ -53,7 +53,7 @@ def refresh(password, config):
     pyfiglet.print_figlet('Jobs', colors=config[3][1])
     
     current_job_list = util.sql_to_dataframe('vw_jobs', 'timetable', password, config)
-    work_job_list = util.get_notion_jobs(password, config)
+    work_job_list = util.get_work(password, config)
 
     total_jobs = current_job_list.append(work_job_list, ignore_index=True)
     total_jobs.sort_values(by=['index_score','id'], inplace=True, ignore_index=True, ascending=[False,True])
@@ -78,7 +78,7 @@ def refresh(password, config):
     	elif id[1] == 'r':
             util.sm_done_recurring(id, password, config)
     	elif id[1] == 'w':
-            util.sm_done_notion(job[2][index], password, config)
+            util.done_work(id, password, config)
 
     	 
     except ValueError:

@@ -2,7 +2,6 @@ import string
 
 import numpy as np
 import pandas
-import pandas as pd
 import sqlalchemy
 import notion.client
 from cryptography.fernet import Fernet
@@ -118,34 +117,33 @@ def dict_to_int(str):
     return index
 
 
-def get_notion_jobs(password, config):
+def get_work(password, config):
     SQL_Username = config[0][1]
     SQL_driver = config[4][1]
     db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
     engine = sqlalchemy.create_engine(db_connection_str)
+    connection = sqlalchemy.create_engine(db_connection_str)
+    
     work_index = engine.execute('select work_index()').fetchall()[0][0]
 
-    jobs = pd.DataFrame(columns=['id', 'project', 'description', 'length', 'due_date', 'index_score'])
-    client = notion.client.NotionClient(token_v2=config[5][1])
+    jobs = pandas.DataFrame(columns=['id', 'project', 'description', 'index_score'])
+    ls = pandas.read_sql_table('tbl_jobs_work', con=connection)
+    
+    for index,row in ls.iterrows():
+        jobs.loc[len(jobs)] = ['jw_'+str(row['id']),'Work',row['description'],work_index]
 
-    cv = client.get_collection_view(config[6][1])
-
-    for row in cv.collection.get_rows(search=config[7][1]):
-        if not row.status in ('done','Paused/Blocked'):
-            jobs.loc[len(jobs)] = np.array(['jw_' + str(len(jobs)), 'Work', row.name, row.priority, None, work_index])
 
     return jobs
 
 
-def sm_done_notion(name, password, config):
-    client = notion.client.NotionClient(token_v2=config[5][1])
-
-    cv = client.get_collection_view(config[6][1])
-    for row in cv.collection.get_rows(search=name):
-        row.done = True
-        row.status = 'done'
-        
-        
+def done_work(id, password, config):
+    SQL_Username = config[0][1]
+    SQL_driver = config[4][1]
+    db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
+    connection = sqlalchemy.create_engine(db_connection_str)
+    id = int("".join(filter(str.isdigit, task_id)))
+    query = 'delete from tbl_jobs_work where id = ' + str(id)
+    connection.execute(query)
         
         
 def encrypt(filename, p):

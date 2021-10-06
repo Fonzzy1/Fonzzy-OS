@@ -10,7 +10,7 @@ def new_js(password, config):
     SQL_driver = config[4][1]
     db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable' 
     connection = sqlalchemy.create_engine(db_connection_str)
-    type = input('Job (j) or Scheduled Event (s)?')
+    type = input('Job (j), Work Task (w), or Scheduled Event (s)?')
     if type == 'j':
         jtype = input('Is the Job Due (d), Not Due (n) or Reccuring (r)')
         if jtype =='d':
@@ -48,3 +48,6 @@ def new_js(password, config):
             time = input('Time: ')
             length =  input('Length: ')
             connection.execute('insert into tbl_schedule_one_off(project,description, day, time, length) values (\''+project+ '\',\''+desc+ '\',\''+day+ '\',\''+time+ '\',\''+length+ '\')')
+    if type =='w':
+        desc = input('Description: ')
+        connection.execute('insert into tbl_jobs_work(description) values (\''+desc+ '\')')
