@@ -1,8 +1,7 @@
 import math
 import os
-
 import readchar
-
+import datetime
 import util
 import pandas as pd
 import pyfiglet
@@ -57,6 +56,8 @@ def refresh(password, config):
 
     total_jobs = current_job_list.append(work_job_list, ignore_index=True)
     total_jobs.sort_values(by=['index_score','id'], inplace=True, ignore_index=True, ascending=[False,True])
+    total_jobs = total_jobs.loc[(total_jobs['start_date']<= datetime.datetime.today())  | pd.isnull(total_jobs['start_date'])]
+    total_jobs.reset_index(inplace=True, drop = True)
     for [index,job] in total_jobs[0:10].iterrows():
         print(str(index) + ' - ' + job[1] + '|' + job[2]+ ' ' + str(job[3]))
         

@@ -141,8 +141,8 @@ def done_work(id, password, config):
     SQL_driver = config[4][1]
     db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
     connection = sqlalchemy.create_engine(db_connection_str)
-    id = int("".join(filter(str.isdigit, task_id)))
-    query = 'delete from tbl_jobs_work where id = ' + str(id)
+    task_id = int("".join(filter(str.isdigit, id)))
+    query = 'delete from tbl_jobs_work where id = ' + str(task_id)
     connection.execute(query)
         
         

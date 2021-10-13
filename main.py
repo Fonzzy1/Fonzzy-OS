@@ -6,6 +6,7 @@ import pandas
 import pyfiglet
 import readchar
 import sqlalchemy
+import datetime
 from requests import get
 from json import loads
 import util
@@ -40,7 +41,9 @@ def mainpage():
     work_job_list = util.get_work(password, config)
 
     total_jobs = current_job_list.append(work_job_list, ignore_index=True)
-    total_jobs.sort_values(by=['index_score'], inplace=True, ignore_index=True, ascending=False)
+    total_jobs.sort_values(by=['index_score','id'], inplace=True, ignore_index=True, ascending=[False,True])
+    total_jobs = total_jobs.loc[(total_jobs['start_date']<= datetime.datetime.today())  | pandas.isnull(total_jobs['start_date'])]
+    total_jobs.reset_index(inplace=True, drop = True)
 
     current_task = total_jobs.iloc[0]
     
