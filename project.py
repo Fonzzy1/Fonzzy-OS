@@ -7,6 +7,7 @@ import pyfiglet
 import readchar
 import util
 import math
+import subprocess
 
 
 def project_page(response, config, file_types, execs):
@@ -23,7 +24,10 @@ def project_page(response, config, file_types, execs):
     os.system('clear')
     pyfiglet.print_figlet(response, colors=config[3][1])
 
-    is_git = os.popen('git rev-parse --is-inside-work-tree > /dev/null 2>&1').read()
+    try:	
+        is_git = subprocess.check_output('git rev-parse --is-inside-work-tree',shell = True, stderr=subprocess.STDOUT, universal_newlines=True)
+    except subprocess.CalledProcessError:
+        is_git = False
     # List all the files in current directory, remove the one we dont want
     project_list = os.listdir()
     unwanted = ['__init__.py', '__pycache__']
@@ -76,7 +80,10 @@ def project_page(response, config, file_types, execs):
         os.chdir('..')
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)
         
-    elif
+    elif response == 'g' and is_git:
+        git_manager()
+        project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+
 
     elif util.dict_to_int(response) >= len(project_list):
     	return
@@ -144,3 +151,67 @@ def project_page(response, config, file_types, execs):
     else:
         return
         
+def git_manager():
+    title = subprocess.check_output('basename `git rev-parse --show-toplevel`', shell=True, stderr=subprocess.STDOUT, universal_newlines=True)
+    
+    os.system('clear')
+    
+    pyfiglet.print_figlet(title)
+    
+    status = os.popen('git status -s').read().split('\n')[:-1]
+    n_status = len(status)
+    ansi_dic = {'M':'\u001b[33m','A':'\u001b[32m','D':'\u001b[31m','R':'\u001b[35m','C':'\u001b[36m','?':'\u001b[37m'}
+    print_status = np.array([ansi_dic[file[1]] + file for file in status], dtype='str')
+        
+    
+    branch = os.popen('git branch -a').read().split('\n')[:-1]
+    n_branch = len(branch)
+    for index, b in enumerate(branch):
+        if '*' in b:
+            branch[index] = '\u001b[32m' + b + "\u001b[0m"
+        else:
+            branch[index] = '\u001b[35m' + b + "\u001b[0m"
+    print_branch = np.array(branch, dtype='str')
+    
+    pr  = os.popen('gh pr list').read().split('\n')[:-1]
+    n_pr = len(pr)
+    for index, p in enumerate(pr):
+        pr[index] = p.split("\t")[1]
+    print_pr = np.array(pr, dtype='str')		
+    
+    
+    issue = os.popen(' gh issue list').read().split('\n')[:-1]
+    n_issue = len(issue)
+    for index, i in enumerate(issue):
+         issue[index]  = i.split('\t')[2]
+       
+    print_issue = np.array(issue, dtype='str')
+    
+    rows = max([n_branch,n_status, n_pr,n_issue])
+    
+    
+    pad_status = np.pad(print_status,(0,rows - n_status),constant_values='')
+    pad_branch = np.pad(print_branch,(0,rows - n_branch),constant_values='')
+    pad_pr = np.pad(print_pr,(0,rows - n_pr),constant_values='')
+    pad_issue = np.pad(print_issue,(0,rows - n_issue),constant_values='')
+    
+    h = os.get_terminal_size()[1] -rows -  15 
+    w = os.get_terminal_size()[0]
+    col_w = math.floor(w/4) - 1
+    
+    print_array  = np.array([pad_status,pad_branch,pad_pr,pad_issue]).T
+
+    header = np.array(['Status','Branch','Pull Req','Issues'])
+   
+    h = os.get_terminal_size()[1] -rows -  20 
+    w = os.get_terminal_size()[0]
+
+
+    print(str("{:<"+str(col_w) + "}|{:<"+str(col_w) + "}|{:<"+str(col_w) + "}|{:<"+str(col_w) + "}").format(*header))
+    print('-'*w)
+    for row in print_array:
+        print(str("{:<"+str(col_w) + "}|{:<"+str(col_w) + "}|{:<"+str(col_w) + "}|{:<"+str(col_w) + "}").format(*row))
+    print('-'*w)
+
+    os.system('git log --graph --abbrev-commit --decorate --format=format:\'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)\' -'+str(h))
+    input('')
