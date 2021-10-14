@@ -16,7 +16,7 @@ def start():
     """
 
     try:
-        os.chdir('/home/fonzzy/Documents/Fonzzy-OS/config')
+        os.chdir('/home/fonzzy/Documents/ssh-mate/config')
         test = pandas.read_csv('config.csv')
         test.iloc[1,1]
     

@@ -6,6 +6,7 @@ import pandas as pd
 import pyfiglet
 import readchar
 import util
+import math
 
 
 def project_page(response, config, file_types, execs):
@@ -31,24 +32,44 @@ def project_page(response, config, file_types, execs):
             project_list.remove(item)
         except:
             pass
+    hidden_list = []
     for item in project_list:
         if item.startswith('.'):
             project_list.remove(item)
-    project_list = sorted(project_list)
+            hidden_list.append(item)
+            
+    project_list = sorted(project_list, key=lambda v: (v.casefold(), v))
+    hidden_list = sorted(hidden_list, key=lambda v: (v.casefold(), v))
+    project_list = project_list + hidden_list
 
     # Print the page
-    for project in project_list:
-        print(str(util.int_to_dict(project_list.index(project))) + ': ' + project)
-    print('Go to file, n for new file, b for back, any other key to quit: ')
+    h = (os.get_terminal_size()[1] - 10) * 3/4
+    
+    if len(project_list) > h:
+        project_print = [str(util.int_to_dict(project_list.index(project))) + ': ' + project for project in project_list]
+        cols  = math.ceil(len(project_print)/h)
+        project_array = [project_print[i:i+cols] for i in range(0, len(project_print), cols)]
+        for row in project_array:
+            print(('{: <30}'*cols).format(*row))
+    
+    else:
+        for project in project_list:
+            print(str(util.int_to_dict(project_list.index(project))) + ': ' + project)
+        
+       
+    print('Go to file, n for new, b for back, any other key to quit: ')
     response = readchar.readkey()
 
-    # make new file or folder for weather or not . in name
+    # make new file or dir
     if response == 'n':
-        file_name = input("File Name: ")
-        if '.' in file_name:
+    	
+        dorf = input("File(f) or Directory(d)")
+        file_name = input("Name: ")
+        if dorf == 'f':
             os.system("touch " + file_name)
-        else:
+        if dorf == 'd':
             os.mkdir('./' + file_name)
+            os.chdir('./' + file_name)
 
         project_page('New File Added', config, file_types, execs)
 
@@ -82,7 +103,9 @@ def project_page(response, config, file_types, execs):
         response2 = readchar.readkey()
 
         if response2 == 'b':
-            os.remove(file_name)
+            conf = input('Type y to confirm')
+            if conf.lower() == 'y':
+            	os.remove(file_name)
 
         elif response2 == 'n':
             new_name = input('Change file name to: ')
