@@ -100,6 +100,7 @@ def int_to_dict(int):
     ls_char.remove('n')
     ls_char.remove('b')  # remove n and b to work with projects page
     ls_char.remove('m')
+    ls_char.remove('g')
     char = ls_char[int]
     return char
 
@@ -113,6 +114,7 @@ def dict_to_int(str):
     ls_char.remove('n')
     ls_char.remove('b')  # remove n and b to work with projects page
     ls_char.remove('m')
+    ls_char.remove('g')
     index = ls_char.index(str)
     return index
 

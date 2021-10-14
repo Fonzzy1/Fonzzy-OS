@@ -23,7 +23,7 @@ def project_page(response, config, file_types, execs):
     os.system('clear')
     pyfiglet.print_figlet(response, colors=config[3][1])
 
-
+    is_git = os.popen('git rev-parse --is-inside-work-tree > /dev/null 2>&1').read()
     # List all the files in current directory, remove the one we dont want
     project_list = os.listdir()
     unwanted = ['__init__.py', '__pycache__']
@@ -45,19 +45,17 @@ def project_page(response, config, file_types, execs):
     # Print the page
     h = (os.get_terminal_size()[1] - 10) * 3/4
     
-    if len(project_list) > h:
-        project_print = [str(util.int_to_dict(project_list.index(project))) + ': ' + project for project in project_list]
-        cols  = math.ceil(len(project_print)/h)
-        project_array = [project_print[i:i+cols] for i in range(0, len(project_print), cols)]
-        for row in project_array:
-            print(('{: <30}'*cols).format(*row))
-    
+    project_print = np.array([str(util.int_to_dict(project_list.index(project))) + ': ' + project for project in project_list])
+    cols  = math.ceil(len(project_print)/h)
+    rows = math.ceil(len(project_print)/cols)
+    pad = cols * rows - len(project_print)
+    project_array = np.reshape(np.pad(project_print,(0,pad), constant_values=''), (cols,rows)).T
+    for row in project_array:
+        print(('{: <30}'*cols).format(*row))
+    if is_git:    
+        print('Go to file, n for new, b for back, g for git, any other key to quit: ')
     else:
-        for project in project_list:
-            print(str(util.int_to_dict(project_list.index(project))) + ': ' + project)
-        
-       
-    print('Go to file, n for new, b for back, any other key to quit: ')
+        print('Go to file, n for new, b for back, any other key to quit: ')
     response = readchar.readkey()
 
     # make new file or dir
@@ -77,6 +75,8 @@ def project_page(response, config, file_types, execs):
     elif response == 'b':
         os.chdir('..')
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+        
+    elif
 
     elif util.dict_to_int(response) >= len(project_list):
     	return
@@ -103,7 +103,7 @@ def project_page(response, config, file_types, execs):
         response2 = readchar.readkey()
 
         if response2 == 'b':
-            conf = input('Type y to confirm')
+            conf = input('Type y to confirm: ')
             if conf.lower() == 'y':
             	os.remove(file_name)
 
