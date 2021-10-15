@@ -87,7 +87,7 @@ def status_page():
         
 def log_page():
         os.system('clear')
-        os.system('git log --graph --abbrev-commit --decorate --all --format=format:\'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)\'')
+        os.system('git log --graph --abbrev-commit --decorate --all --format=format:\'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n %C(white)%s%C(reset) %C(dim white)- %an - %ae %C(reset) %n %n %b\'')
         print('Commit diff(d),Overall diff(o),Checkout(b)')
         response = readchar.readkey()
 
