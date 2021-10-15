@@ -1,1 +1,24 @@
-gAAAAABhaMgdQptu9AoTN3QVE1IfTJugRYUvP_lUFdTRNZx8MOO1ftmEPf_OZ5vDg9sCO-8JdLVNCvOwJzACSHJ8V_7pS7EagYBf5Ods49nCo35O14-wodrK-ZAKgqhHAl7_dZOjrkRzte7v4peg9BQTe-JkUexTFBCvzcg1bYZRm6pXJOLoQtnsTHUQ0QY8vdImhNhbCWuhk0rs5n-dJ5D7wNk4pCIHl1vSK9ZuyMIlghVUID2nj23T3WES0Y0o5tArca488exkAcneZzd9_3IwNtB6Imc86aZHYhR-q41r2YMd6un7VwTVyUVcQplQ-S8kFZuV57IfDWMEiwLTMEMQtwiB_Vvo0fpqEPskhHqBRNIXnpCjDmXdyrtDo6wuI5g8NnJVKzlLCPMUCxGtMwEO17E94XKXT10JJwybyNMc0Ea53K0c7jKDA-VqJCyvy7p97e8w2tPR2T6WfEP0t_6R9XaP3Qg6nnh9AaXdx-d4Rib3-A9YuGNDwpwls7uFQQAfeEPHc_BsZiDf_JHseiQAHHRRtWISQaPyebcpZJBerK1AuD-RUQLhlQa4RiomHQOhG4t0drgkkA1a7tB72LV6zMBzk1t4fdSCvv1TUIM0Nj25PDSjgZc3VPDqNnB-YVXjFIy3b_IG4Z0Hd3zdaX49AVGh8kkSFmK9gBxaZEBD7-_vRzetm58-ex27wXI0haCujFu-dLoW-xHetkoDyyxcn5muWaBU5G6P7HWVosAFe4Sn-616bOm_uI7VxvV3m32SJzZ_t6YoIv7RmiHSL1eRq-TE5InsSYnCuMeeLzDQiIdIyzr4iVhwq9l2onASR7hQ8NR_Q_1MibU-yZxpfOptqUW8PVLxvYJFmawJXf1ED-5lVwCnHoaUnLmzuHJTKKWPucHSQQ--PXilbn5ozdpdOS4GIary3xyIjtq_ThgOdHC4yECjz0m5MiDINr1X2JmjHciwOVBLvC_V_j6tOClrmTyhd5vOGr3nxA74SpPJerxGj7ZUUxfBx4f1yOygzgwE9sl4X8jvLmialsNvrU20ny9yIgM-yw1bHtaMDY-dEk2q6dqWi3Y095z3DQXRQt_7T_8eJL4zlaai1jXnAabzSsb9c-1MeMYvP82UYRrj62M0e37830tcXLFoQ7dnAiGS4CfiCH0KESYdA41VM3zgQRXBrJ39vJPnGUT2DotSh47pUVBb4KC8uKbLMtB1TucwdFEia7F7Byzni6sM_Ea7ohtwqEoXsCk8_wC56Y7FkaHuSlkNuMT6KJVq8C809NNnVxgKO2creqtqdYJ8r4-5fz7Qra_ytyyXbQJPrOPDRyg9Ix2s2lGtiDPXGf3rNtSJhQPwm-CmZQ2P-cDd11rmp2xrLWNSIB9BWvaIJCmqTIGdu_CPBLsJ0Qd2rHyLxRTbN4SIjrLZefIBdaHHDJbj6DEKpMa5SjpI1KOiAh1oVEt_J2oxI47VDAZ1LmGNh8QMTDbxBzJavjKZmcAcNJD92rwy29P71Zl_9GTkH0UfaHO877Kq_fVJdUNoX6VXNWtmOuUxl_9REZmS06GViLL88LPRPVlf2Q==
+key|value|wait
+vim|vim '{}'|0
+docx2txt|docx2txt '{}'|0
+fbi|fbi '{}'|0
+jupyter|jupyter nbconvert --to python '{}'|0
+matlab|matlab  -nodisplay -nosplash -r "run(''{}'')"|0
+knithtml|R -e 'rmarkdown::render("'{}'","html_document")'|1
+knitpdf| R -e 'rmarkdown::render("'{}'","pdf_document")'|1
+vid|mplayer -vo fbdev -vf scale=1920:1080 -fs '{}'|0
+fbgs|fbgs -xxl -b '{}'|0
+python|python3 '{}'|1
+ipython|python3 -i  '{}'|0
+R|Rscript '{}'|1
+iR|R   --file='{}' --interactive|0
+unrar|unrar e '{}'|0
+sqlhome|mysql  --local-infile=1 -p'76692623Snow!SQL' < '{}'|1
+sqlprod|mysql --local-infile=1  -h rds-edapt-prod.cg5bofaurksl.ap-southeast-2.rds.amazonaws.com -u edapt-prod -p'MG3lmJ69Eqnb9EJu' < '{}'|1
+sqldev|mysql  --local-infile=1 -h rds-edapt-dev.cg5bofaurksl.ap-southeast-2.rds.amazonaws.com -u rdsAdminDev -p'wUQSLgN2Oc0k8n0diIvP' < '{}'|1
+sqluat|mysql  --local-infile=1  -h rds-edapt-uat.cg5bofaurksl.ap-southeast-2.rds.amazonaws.com -u edapt-prod -p'MG3lmJ69Eqnb9EJu' < '{}'|1
+unzip|unzip '{}'|0
+tar|tar xvf '{}'|0
+pdf2txt|pdftotext '{}'|0
+caca|cacaview '{}'|0
+textvid|mplayer -vo caca -vf scale=1920:1080 -fs '{}'|0

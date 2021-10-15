@@ -35,11 +35,11 @@ def pr_page():
     
     os.system('gh pr list')
     
-    print('Create(n),Comment(c),Close(d),View(v),Edit(e),Checkout(b),Diff(f),Merge(m)')
+    print('Create(n),Comment(c),Close(d),View(v),Edit(e),Checkout(b),Diff(f),Merge(m),Review(r)')
     response = readchar.readkey()
 
     
-    command_dict = {'n':'create','c':'comment','d':'close','v':'view','e':'edit','b':'checkout','f':'diff','m':'merge'}
+    command_dict = {'n':'create','c':'comment','d':'close','v':'view','e':'edit','b':'checkout','f':'diff','m':'merge','r':'review'}
     try:
         command = command_dict[response]
         num = input('Number: ')
@@ -54,7 +54,7 @@ def branch_page():
     
     os.system('git branch -a')
     
-    print('Create(n),Comment(c),Close(d),View(v),Edit(e),Checkout(b),Diff(f),Merge(m)')
+    print('Create(n),Close(d),Checkout(b)')
     response = readchar.readkey()
 
     
