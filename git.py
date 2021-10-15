@@ -76,7 +76,7 @@ def status_page():
     print('Commit(c),Revert(r),Add(a),Pull(p),Push(s),diff(d)')
     response = readchar.readkey()
     
-    command_dict = {'c':'commit','r': 'checkout -- ','a':'add','p':'push','d':'difftool --tool=vimdiff' }
+    command_dict = {'c':'commit','r': 'checkout -- ','a':'add','p':'pull','s':'push','d':'difftool --tool=vimdiff' }
     try:
         command = command_dict[response]
         num = input('File: ')
