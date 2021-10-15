@@ -164,8 +164,6 @@ def git_manager():
    
     h = os.get_terminal_size()[1] -rows -  20 
 
-
-
     print(str("{:<"+str(col_w) + "}|{:<"+str(col_w) + "}|{:<"+str(col_w) + "}|{:<"+str(col_w) + "}").format(*header))
     print('-'*w)
     for row in print_array:
