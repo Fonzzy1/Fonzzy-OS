@@ -100,8 +100,8 @@ def log_page():
                 os.system('git difftool {} --tool=vimdiff'.format(num))
             if response == 'b':
                 num = input('Commit: ')                  
-                name = input('Branch Name')
-                os.system('git checkout -b  {} {}'.format([num,name]))                
+                name = input('Branch Name: ')
+                os.system('git checkout -b  {} {}'.format(name,num))                
         except KeyError:
             return 
         
