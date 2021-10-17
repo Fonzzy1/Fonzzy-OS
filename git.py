@@ -60,11 +60,11 @@ def branch_page():
     
     os.system('git branch -a')
     
-    print('Create(n),Close(d),Checkout(b),Add to remote(a)','Remove from remote(r),Fetch(f)')
+    print('Create(n),Close(d),Checkout(b),Add to remote(a),Remove from remote(r),Fetch(f)')
     response = readchar.readkey()
 
     
-    command_dict = {'n':[' checkout -b',1],'d':['branch -D',1],'b':['checkout',1], 'a':['push -u origin',1],'r':['push origin --delete',1],'f':['fetch --all',0]}
+    command_dict = {'n':[' checkout -b',1],'d':['branch -D',1],'b':['checkout',1], 'a':['push -u origin',1],'r':['push origin --delete',1],'f':['fetch --all --prune',0]}
     try:
         command = command_dict[response]
         if command[1] == 1:
