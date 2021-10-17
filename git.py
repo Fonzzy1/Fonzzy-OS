@@ -19,11 +19,14 @@ def issue_page():
     response = readchar.readkey()
 
     
-    command_dict = {'n':'create','c':'comment','d':'close','v':'view','e':'edit'}
+    command_dict = {'n':['create',0],'c':['comment',1],'d':['close',1],'v':['view',1],'e':['edit',1]}
     try:
         command = command_dict[response]
-        num = input('Issue Number: ')        
-        os.system('gh issue ' + command + ' ' + num)
+        if command[1] == 1:
+            num = input('Issue Number: ')  
+        else:
+            num = ''              
+        os.system('gh issue ' + command[0] + ' ' + num)
         issue_page()
     except KeyError:
         return 
@@ -39,11 +42,14 @@ def pr_page():
     response = readchar.readkey()
 
     
-    command_dict = {'n':'create','c':'comment','d':'close','v':'view','e':'edit','b':'checkout','f':'diff','m':'merge','r':'review'}
+    command_dict = {'n':['create',0],'c':['comment',1],'d':['close',1],'v':['view',1],'e':['edit',1],'b':['checkout',1],'f':['diff',1],'m':['merge',1],'r':['review',1]}
     try:
         command = command_dict[response]
-        num = input('Number: ')
-        os.system('gh pr ' + command + ' ' + num)
+        if command[1] == 1:
+            num = input('Issue Number: ')  
+        else:
+            num = ''        
+        os.system('gh pr ' + command[0] + ' ' + num)
         pr_page()
     except KeyError:
         return 
@@ -54,15 +60,18 @@ def branch_page():
     
     os.system('git branch -a')
     
-    print('Create(n),Close(d),Checkout(b)')
+    print('Create(n),Close(d),Checkout(b),Add to remote(a)','Remove from remote(r),Fetch(f)')
     response = readchar.readkey()
 
     
-    command_dict = {'n':' checkout -b','d':'branch -D','b':'checkout'}
+    command_dict = {'n':[' checkout -b',1],'d':['branch -D',1],'b':['checkout',1], 'a':['push -u origin',1],'r':['push origin --delete',1],'f':['fetch --all',0]}
     try:
         command = command_dict[response]
-        num = input('Branch Name: ')
-        os.system('git ' + command + ' ' + num)
+        if command[1] == 1:
+            num = input('Branch Name: ')  
+        else:
+            num = ''    
+        os.system('git ' + command[0] + ' ' + num)
         branch_page()
     except KeyError:
         return 
@@ -76,11 +85,14 @@ def status_page():
     print('Commit(c),Revert(r),Add(a),Pull(p),Push(s),diff(d)')
     response = readchar.readkey()
     
-    command_dict = {'c':'commit','r': 'checkout -- ','a':'add','p':'pull','s':'push','d':'difftool --tool=vimdiff' }
+    command_dict = {'c':['commit',0],'r': ['checkout -- ',1],'a':['add',1],'p':['pull',0],'s':['push',0],'d':['difftool --tool=vimdiff',0] }
     try:
         command = command_dict[response]
-        num = input('File: ')
-        os.system('git ' + command + ' ' + num)
+        if command[1] == 1:
+            num = input('File: ')  
+        else:
+            num = ''    
+        os.system('git ' + command[0] + ' ' + num)
         status_page()
     except KeyError:
         return 
@@ -114,9 +126,8 @@ def git_manager():
     
     w = os.get_terminal_size()[0]
     col_w = math.floor(w/4) - 1
-    
     os.system('clear')
-    
+  
     pyfiglet.print_figlet(title)
     
     status = os.popen('git status -s').read().split('\n')[:-1]
