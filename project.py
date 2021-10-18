@@ -107,7 +107,6 @@ def project_page(response, config, file_types, execs):
         print('b: Delete file')
         print('n: Rename file')
         print('m: Move file')
-        print('g: Share file')
 
         response2 = readchar.readkey()
 
@@ -124,10 +123,7 @@ def project_page(response, config, file_types, execs):
             new_loc = input('New file destination: ')
             shutil.move(file_name,new_loc)
             
-        elif response2 == 'g':
-            d = input('Description: ')
-            os.system('gh gist create  --public  -d' + d + ' ' + file_name)  
-            
+
         else:
             try:
                 index = util.dict_to_int(response2)	
