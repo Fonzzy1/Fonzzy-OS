@@ -12,6 +12,7 @@ import subprocess
 def issue_page():
     os.system('clear')
     pyfiglet.print_figlet("Issues")
+    os.system('gh issue status')
     
     os.system('gh issue list')
     
@@ -35,7 +36,7 @@ def issue_page():
 def pr_page():
     os.system('clear')
     pyfiglet.print_figlet("Pull Requests")
-    
+    os.system('gh pr status')
     os.system('gh pr list')
     
     print('Create(n),Comment(c),Close(d),View(v),Edit(e),Checkout(b),Diff(f),Merge(m),Review(r)')
