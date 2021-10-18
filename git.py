@@ -20,7 +20,7 @@ def issue_page():
     response = readchar.readkey()
 
     
-    command_dict = {'n':['create',0],'c':['comment',1],'d':['close',1],'v':['view',1],'e':['edit',1]}
+    command_dict = {'n':['create',0,0],'c':['comment',1,0],'d':['close',1,0],'v':['view -c ',1,1],'e':['edit',1,0]}
     try:
         command = command_dict[response]
         if command[1] == 1:
@@ -28,6 +28,8 @@ def issue_page():
         else:
             num = ''              
         os.system('gh issue ' + command[0] + ' ' + num)
+        if command[2] == 1:
+            readchar.readkey()
         issue_page()
     except KeyError:
         return 
@@ -43,7 +45,7 @@ def pr_page():
     response = readchar.readkey()
 
     
-    command_dict = {'n':['create',0],'c':['comment',1],'d':['close',1],'v':['view',1],'e':['edit',1],'b':['checkout',1],'f':['diff',1],'m':['merge',1],'r':['review',1]}
+    command_dict = {'n':['create',0,0],'c':['comment',1,0],'d':['close',1,0],'v':['view -c',1,1],'e':['edit',1,1],'b':['checkout',1,0],'f':['diff',1,1],'m':['merge',1,0],'r':['review',1,0]}
     try:
         command = command_dict[response]
         if command[1] == 1:
@@ -51,6 +53,8 @@ def pr_page():
         else:
             num = ''        
         os.system('gh pr ' + command[0] + ' ' + num)
+        if command[2] == 1:
+            readchar.readkey()
         pr_page()
     except KeyError:
         return 
