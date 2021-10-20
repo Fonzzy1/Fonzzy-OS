@@ -129,9 +129,10 @@ def project_page(response, config, file_types, execs):
                 index = util.dict_to_int(response2)	
                 command = execs['value'][np.where(execs['key'] == programs[index])[0][0]]
                 full_command = command.format(file_name)
-                os.system(full_command)
                 if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
-                    wait = readchar.readkey()
+                    os.system('clear')
+                    full_command += ' | less'
+                os.system(full_command)
             except IndexError:
                 pass
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)

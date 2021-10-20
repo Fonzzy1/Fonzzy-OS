@@ -112,7 +112,7 @@ def log_page():
             if response == 'd':
                 num = input('Commit: ')            
                 os.system('git difftool {}~ {} --tool=vimdiff'.format(num,num))
-            if response == '0':
+            if response == 'o':
                 num = input('Commit: ')                  
                 os.system('git difftool {} --tool=vimdiff'.format(num))
             if response == 'b':

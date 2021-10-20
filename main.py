@@ -32,7 +32,7 @@ def mainpage():
     file_types = pandas.read_csv('./config/file_types.csv', header=None)
     programs = pandas.read_csv('./config/programs.csv', header=None).values
     config = pandas.read_csv('./config/config.csv').values
-    execs = pandas.read_csv('config/execs.psv',delimiter='|')
+    execs = pandas.read_csv('config/execs.psv',delimiter='\t')
     os.chdir(config[1][1])
     password = config[5][1]
 
