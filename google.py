@@ -34,11 +34,8 @@ def main():
             	p=subprocess.Popen('youtube-dl -f best {}'.format(url),shell = True)
             	p.wait()
             else:
-                with open(article.title + '.txt', 'w') as f:
-                    f.write(content)
                 p=subprocess.Popen('wkhtmltopdf "{}" "{}".pdf > /dev/null 2>&1'.format(url,article.title.replace(' ','_')),shell = True)    
                 p.wait()
-            
             
 		
 

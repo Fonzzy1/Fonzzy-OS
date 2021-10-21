@@ -60,13 +60,13 @@ def project_page(response, config, file_types, execs):
     if is_git:    
         print('Go to file, n for new, b for back, g for git, any other key to quit: ')
     else:
-        print('Go to file, n for new, b for back, any other key to quit: ')
+        print('Go to file, n for new, b for back, \ for command prompt, any other key to quit: ')
     response = readchar.readkey()
 
     # make new file or dir
     if response == 'n':
     	
-        dorf = input("File(f) or Directory(d)")
+        dorf = readchar.readkey("File(f) or Directory(d)")
         file_name = input("Name: ")
         if dorf == 'f':
             os.system("touch " + file_name)
@@ -84,8 +84,12 @@ def project_page(response, config, file_types, execs):
     elif response == 'g' and is_git:
         git_manager()
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)
-
-
+    
+    elif response == '\\':
+        cmd = input('')
+        os.system(cmd)
+        project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+    
     elif util.dict_to_int(response) >= len(project_list):
     	return
     
@@ -131,7 +135,7 @@ def project_page(response, config, file_types, execs):
                 full_command = command.format(file_name)
                 if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
                     os.system('clear')
-                    full_command += ' | less'
+                    full_command += ' | less +F'
                 os.system(full_command)
             except IndexError:
                 pass
