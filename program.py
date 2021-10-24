@@ -23,14 +23,28 @@ def programs_page(programs, config):
     for program in program_list:
         print(str(util.int_to_dict(program_list.index(program))) + ': ' + program)
 
-    #
-
+    print('\\: cli')
+    
+    key = readchar.readkey()
+    
+    if key == '\\':
+        cmd =input('')
+        os.system(cmd)
+        readchar.readkey()
+    
     try:
-        response = util.dict_to_int(readchar.readkey())
-        response = int(response)    
-        os.system('clear')
-        pyfiglet.print_figlet(program_list[response], colors=config[3][1])
-        os.system(call_list[response])
-    except:
+        if '\x1b' in key:
+        
+            response = util.dict_to_int(key[1])
+            response = int(response)    
+            os.system("tmux split-window -h \"{}\"".format(call_list[response]))
+        else: 
+            response = util.dict_to_int(key)
+            response = int(response)    
+            os.system('clear')
+            pyfiglet.print_figlet(program_list[response], colors=config[3][1])
+            os.system(call_list[response])
+
+    except IndexError:
         pass
     os.system('clear')

@@ -58,7 +58,7 @@ def project_page(response, config, file_types, execs):
     for row in project_array:
         print(('{: <30}'*cols).format(*row))
     if is_git:    
-        print('Go to file, n for new, b for back, g for git, any other key to quit: ')
+        print('Go to file, n for new, b for back, \ for command prompt, g for git, any other key to quit: ')
     else:
         print('Go to file, n for new, b for back, \ for command prompt, any other key to quit: ')
     response = readchar.readkey()
@@ -130,15 +130,25 @@ def project_page(response, config, file_types, execs):
 
         else:
             try:
-                index = util.dict_to_int(response2)	
-                command = execs['value'][np.where(execs['key'] == programs[index])[0][0]]
-                full_command = command.format(file_name)
-                if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
-                    os.system('clear')
-                    full_command += ' | less +F'
-                os.system(full_command)
+                if not '\x1b' in response2:
+                        index = util.dict_to_int(response2)	
+                        command = execs['value'][np.where(execs['key'] == programs[index])[0][0]]
+                        full_command = command.format(file_name)
+                        os.system(full_command)
+                        if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
+                            readchar.readkey()                        
+                else:
+                        index = util.dict_to_int(response2[1])	
+                        command = execs['value'][np.where(execs['key'] == programs[index])[0][0]]
+                        full_command = command.format(file_name)
+                        os.system("tmux split-window -h \"{}\"".format(full_command))
+                        if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
+                            readchar.readkey()
+                        return
             except IndexError:
                 pass
+		        
+		 
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)
 
 
