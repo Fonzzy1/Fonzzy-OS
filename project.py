@@ -9,7 +9,7 @@ import util
 import math
 import subprocess
 from git import git_manager
-
+from program import programs_page
 
 def project_page(response, config, file_types, execs):
     """
@@ -57,16 +57,18 @@ def project_page(response, config, file_types, execs):
     project_array = np.reshape(np.pad(project_print,(0,pad), constant_values=''), (cols,rows)).T
     for row in project_array:
         print(('{: <30}'*cols).format(*row))
+    print('n: New')
+    print('b: Back')
+    print('o: Programs')
     if is_git:    
-        print('Go to file, n for new, b for back, \ for command prompt, g for git, any other key to quit: ')
-    else:
-        print('Go to file, n for new, b for back, \ for command prompt, any other key to quit: ')
+        print('g: Git')
+    print('\: Cli')
     response = readchar.readkey()
 
     # make new file or dir
     if response == 'n':
-    	
-        dorf = readchar.readkey("File(f) or Directory(d)")
+        print("File(f) or Directory(d)")
+        dorf = readchar.readkey()
         file_name = input("Name: ")
         if dorf == 'f':
             os.system("touch " + file_name)
@@ -90,6 +92,10 @@ def project_page(response, config, file_types, execs):
         os.system(cmd)
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)
     
+    elif response  == 'o':
+        programs_page(config)
+        project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+
     elif util.dict_to_int(response) >= len(project_list):
     	return
     
@@ -144,9 +150,8 @@ def project_page(response, config, file_types, execs):
                         os.system("tmux split-window -h \"{}\"".format(full_command))
                         if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
                             readchar.readkey()
-                        return
             except IndexError:
-                pass
+                    pass
 		        
 		 
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)

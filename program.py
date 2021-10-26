@@ -2,9 +2,9 @@ import os
 import util
 import pyfiglet
 import readchar
+import pandas
 
-
-def programs_page(programs, config):
+def programs_page(config):
     """
     Allows for opening of programs from os
 
@@ -12,6 +12,12 @@ def programs_page(programs, config):
     config(dataframe): config file in dataframe form
 
     """
+
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    programs = pandas.read_csv(dname +'/config/programs.csv', header=None)
+    
+
 
     #Print header
     os.system('clear')

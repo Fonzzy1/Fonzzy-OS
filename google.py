@@ -13,13 +13,18 @@ def main():
     parser.add_argument('urls', metavar='URL', nargs='+')
     args = parser.parse_args()
     for url in args.urls:
-        if any(x in url for x in ['.pdf','.mp4','.mp3','png','jpeg']):
-            	p=subprocess.Popen('wget {}'.format(url),shell = True)
+        ## If its an image download and display
+        if any(x in url for x in ['png','jpeg','jpg','giff']):
+            	p=subprocess.Popen('wget -O .tempdownload {};cacaview .tempdownload; rm .tempdownload'.format(url),shell = True)
             	p.wait()
-        elif 'youtube' in url:
+        ## If it is a youtube vid download and play        
+        elif 'youtu' in url:
                 p=subprocess.Popen('youtube-dl -f  worst --output ".youtube_dl" {}; mplayer -really-quiet -vo caca .youtube_dl'.format(url),shell = True)
                 p.wait()
                 os.system("rm .youtube_dl")
+        ## If it is a pdf
+        elif '.pdf' in url:
+            	p=subprocess.Popen('wget -O .tempdownload {};pdftotext -layout .tempdownload - | vim -; rm .tempdownload'.format(url),shell = True)
         else:           	
             article = newspaper.Article(url)
             article.download()
