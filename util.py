@@ -1,5 +1,6 @@
 import string
-
+from collections import Counter
+import re
 import numpy as np
 import pandas
 import sqlalchemy
@@ -91,6 +92,57 @@ def sql_to_dataframe(table_name, database, password, config, where=''):
         df = pandas.read_sql_query(query, con=connection)
     return df
 
+def fuzzy_find(ls,string):
+    """
+    Takes in list of objects that need to be fuzzy found
+    Takes in search string
+
+    Returns the shortest noncommon input string
+    """
+
+    ## Encode the strings into shortest
+    # Clean the strings
+    ls = [x.lower() for x in ls]
+    encode = [''] * len(ls)
+    for i,e in enumerate(ls):
+        ls[i] = re.sub('[^a-z0-9\.]','',e)
+        encode[i] = ls[i][0]
+    ## For elements that have a non unique firtst character
+    non_d =  [k for (k,v) in Counter(encode).items() if v > 1]
+    ## Builidng stings one element at a time therefore  while loop
+    while non_d:
+        for e in non_d:
+            # Get the remaining string 
+            rem_string = [(i,x[len(e):]) for (i,x) in enumerate(ls) if x[0:len(e)] == e]
+            cur_element_count = len(rem_string)
+            max_len = max([len(x) for (i,x) in rem_string])
+            # Get first unique char
+            j = -1
+            while cur_element_count:
+                j += 1
+                cur_element = [x[1].ljust(max_len)[j] for x in rem_string]
+                cur_element_count =  len([k for (k,v) in Counter(cur_element).items() if v > 1])
+            #Add unique char to the encoding string
+            for (i,x) in rem_string:
+                try:
+                    encode[i] += x[j]
+                except IndexError:
+                    pass
+
+        non_d =  [k for (k,v) in Counter(encode).items() if v > 1]
+
+    ## Now match encoding to current string 
+    l = len(string)
+    match = [(i,x[l:]) for (i,x) in enumerate(encode) if x[:l] == string]
+    # Retun matches - hidden files only return if begin with '.'
+    # Remove string that has already been inputted
+    if l == 0:
+        match = [(i,x) for (i,x) in enumerate(encode) if x[0] != '.']
+    return match
+        
+
+
+       
 
 def int_to_dict(int):
     """
