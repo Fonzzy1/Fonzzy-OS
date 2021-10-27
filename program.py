@@ -18,39 +18,42 @@ def programs_page(config):
     programs = pandas.read_csv(dname +'/config/programs.csv', header=None)
     
 
-
-    #Print header
-    os.system('clear')
-    pyfiglet.print_figlet('Programs', colors=config[3][1])
-
     #Split dataframe and print
     program_list = programs[0].tolist()
     call_list = programs[1].tolist()
-    for program in program_list:
-        print(str(util.int_to_dict(program_list.index(program))) + ': ' + program)
+    ss = ''
+    hold = util.fuzzy_find(program_list,ss)
+    c = False
+    while not c:
+        #Print header
+        os.system('clear')
+        pyfiglet.print_figlet('Programs', colors=config[3][1])
+        print(ss)
+        index = hold.copy()
+        print(index)
+        max_len =  max([len(x) for i,x in index])
+        for i,x in index:
+            print(str(x.ljust(max_len) + ': ' + program_list[i]))
 
-    print('\\: cli')
-    
-    key = readchar.readkey()
-    
-    if key == '\\':
-        cmd =input('')
-        os.system(cmd)
-        readchar.readkey()
-    
-    try:
-        if '\x1b' in key:
-        
-            response = util.dict_to_int(key[1])
-            response = int(response)    
-            os.system("tmux split-window -h \"{}\"".format(call_list[response]))
-        else: 
-            response = util.dict_to_int(key)
-            response = int(response)    
-            os.system('clear')
-            pyfiglet.print_figlet(program_list[response], colors=config[3][1])
-            os.system(call_list[response])
+        key = readchar.readkey()
 
-    except IndexError:
-        pass
+        if '\r' in key:
+            c = True
+        elif key == '\x7f':
+            ss = ss[0:len(ss) -1]
+            hold = util.fuzzy_find(program_list,ss)
+        else:
+            ss += key
+            hold = util.fuzzy_find(program_list,ss)
+ 
+    if '\x1b' in key:
+        response  = index[0][0]
+        call = call_list[response]    
+        os.system("tmux split-window -h \"{}\"".format(call))
+    else:
+        os.system('clear')
+        response  = index[0][0]
+        pyfiglet.print_figlet(program_list[response], colors=config[3][1])
+        os.system(call_list[response])
+
     os.system('clear')

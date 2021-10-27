@@ -131,13 +131,12 @@ def fuzzy_find(ls,string):
 
         non_d =  [k for (k,v) in Counter(encode).items() if v > 1]
 
-    ## Now match encoding to current string 
+    ## Now match encoding to current string
+    string= re.sub('[^a-z0-9\.]','',string.lower())
     l = len(string)
-    match = [(i,x[l:]) for (i,x) in enumerate(encode) if x[:l] == string]
-    # Retun matches - hidden files only return if begin with '.'
-    # Remove string that has already been inputted
-    if l == 0:
-        match = [(i,x) for (i,x) in enumerate(encode) if x[0] != '.']
+    match_encode = [(i,x[l:]) for (i,x) in enumerate(encode) if x[:l] == string]
+    match_string= [(i,(x+' ')[x.index(string)+l]) for (i,x) in enumerate(ls) if string in x and i not in [i for (i,x) in match_encode]]
+    match = match_encode + match_string
     return match
         
 
