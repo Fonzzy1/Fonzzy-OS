@@ -9,7 +9,7 @@ import util
 import math
 import subprocess
 from git import git_manager
-
+from program import programs_page
 
 def project_page(response, config, file_types, execs):
     """
@@ -22,8 +22,6 @@ def project_page(response, config, file_types, execs):
     """
 
     # Print Header
-    os.system('clear')
-    pyfiglet.print_figlet(response, colors=config[3][1])
 
     try:	
         is_git = subprocess.check_output('git rev-parse --is-inside-work-tree',shell = True, stderr=subprocess.STDOUT, universal_newlines=True)
@@ -37,65 +35,50 @@ def project_page(response, config, file_types, execs):
             project_list.remove(item)
         except:
             pass
-    hidden_list = []
-    for item in project_list:
-        if item.startswith('.'):
-            project_list.remove(item)
-            hidden_list.append(item)
-            
-    project_list = sorted(project_list, key=lambda v: (v.casefold(), v))
-    hidden_list = sorted(hidden_list, key=lambda v: (v.casefold(), v))
-    project_list = project_list + hidden_list
-
-    # Print the page
-    h = (os.get_terminal_size()[1] - 10) * 3/4
     
-    project_print = np.array([str(util.int_to_dict(project_list.index(project))) + ': ' + project for project in project_list])
-    cols  = math.ceil(len(project_print)/h)
-    rows = math.ceil(len(project_print)/cols)
-    pad = cols * rows - len(project_print)
-    project_array = np.reshape(np.pad(project_print,(0,pad), constant_values=''), (cols,rows)).T
-    for row in project_array:
-        print(('{: <30}'*cols).format(*row))
+    n = len(project_list) 
+    project_list.append('New')
+    project_list.append('Back')
+    project_list.append('Programs')
     if is_git:    
-        print('Go to file, n for new, b for back, \ for command prompt, g for git, any other key to quit: ')
-    else:
-        print('Go to file, n for new, b for back, \ for command prompt, any other key to quit: ')
-    response = readchar.readkey()
-
+        project_list.append('Git')
+    
+    key = util.fuzzy_loop(response, project_list)
+    
+    if key == 'exit':
+       return
+    
+    
+    if key[0] >= n:
     # make new file or dir
-    if response == 'n':
-    	
-        dorf = readchar.readkey("File(f) or Directory(d)")
-        file_name = input("Name: ")
-        if dorf == 'f':
-            os.system("touch " + file_name)
-        if dorf == 'd':
-            os.mkdir('./' + file_name)
-            os.chdir('./' + file_name)
+        if  project_list[ key[0]] == 'New':
+            print("File(f) or Directory(d)")
+            dorf = readchar.readkey()
+            file_name = input("Name: ")
+            if dorf == 'f':
+                os.system("touch " + file_name)
+            if dorf == 'd':
+                os.mkdir('./' + file_name)
+                os.chdir('./' + file_name)
 
-        project_page('New File Added', config, file_types, execs)
+            project_page('New File Added', config, file_types, execs)
 
-    # go up a dir
-    elif response == 'b':
-        os.chdir('..')
-        project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+        # go up a dir
+        elif project_list[ key[0]] == 'Back':
+            os.chdir('..')
+            project_page(os.path.basename(os.getcwd()), config, file_types, execs)
         
-    elif response == 'g' and is_git:
-        git_manager()
-        project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+        elif project_list[ key[0]] == 'Git' and is_git:
+            git_manager()
+            project_page(os.path.basename(os.getcwd()), config, file_types, execs)
     
-    elif response == '\\':
-        cmd = input('')
-        os.system(cmd)
-        project_page(os.path.basename(os.getcwd()), config, file_types, execs)
-    
-    elif util.dict_to_int(response) >= len(project_list):
-    	return
+        elif project_list[ key[0]] == 'Programs':
+            programs_page(config)
+            project_page(os.path.basename(os.getcwd()), config, file_types, execs)
     
     # open file with extension
-    elif os.path.isfile(project_list[util.dict_to_int(response)]):
-        file_name = project_list[util.dict_to_int(response)]
+    elif os.path.isfile(project_list[ key[0]]):
+        file_name = project_list[ key[0]]
         try:
             extention = file_name.split('.')[1]
             index =  np.where(file_types[0] == extention)[0][0]
@@ -103,50 +86,44 @@ def project_page(response, config, file_types, execs):
         except IndexError:
             programs = execs['key'].tolist()
 
-        os.system('clear')
-        pyfiglet.print_figlet(file_name, colors=config[3][1])
+        programs.append('Delete')
+        programs.append('Rename')
+        programs.append('Move')
+       
+        key2 = util.fuzzy_loop(file_name, programs)
+        
+        if key2 != 'exit':
 
-        for exec in programs:
-            print(str(util.int_to_dict(programs.index(exec))) + ': ' + exec)
-        print('b: Delete file')
-        print('n: Rename file')
-        print('m: Move file')
 
-        response2 = readchar.readkey()
+            if programs[ key2[0]] == 'Delete':
+                conf = input('Type y to confirm: ')
+                if conf.lower() == 'y':
+                    os.remove(file_name)
 
-        if response2 == 'b':
-            conf = input('Type y to confirm: ')
-            if conf.lower() == 'y':
-            	os.remove(file_name)
+            elif programs[ key2[0]] == 'Rename':
+                new_name = input('Change file name to: ')
+                os.rename(file_name, new_name)
 
-        elif response2 == 'n':
-            new_name = input('Change file name to: ')
-            os.rename(file_name, new_name)
-
-        elif response2 == 'm':
-            new_loc = input('New file destination: ')
-            shutil.move(file_name,new_loc)
+            elif programs[ key2[0]] == 'Move':
+                new_loc = input('New file destination: ')
+                shutil.move(file_name,new_loc)
             
 
-        else:
-            try:
-                if not '\x1b' in response2:
-                        index = util.dict_to_int(response2)	
-                        command = execs['value'][np.where(execs['key'] == programs[index])[0][0]]
+            else:
+                if not '\x1b' in key2:
+                        command = execs['value'][np.where(execs['key'] == programs[key2[0]])[0][0]]
                         full_command = command.format(file_name)
-                        os.system(full_command)
-                        if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
-                            readchar.readkey()                        
+                        os.system(full_command)  
+                        if execs['wait'][np.where(execs['key'] == programs[key2[0]])[0][0]] == 1:
+                            readchar.readkey()               
                 else:
-                        index = util.dict_to_int(response2[1])	
-                        command = execs['value'][np.where(execs['key'] == programs[index])[0][0]]
+                        command = execs['value'][np.where(execs['key'] == programs[key2[0]])[0][0]]
                         full_command = command.format(file_name)
-                        os.system("tmux split-window -h \"{}\"".format(full_command))
-                        if execs['wait'][np.where(execs['key'] == programs[index])[0][0]] == 1:
-                            readchar.readkey()
-                        return
-            except IndexError:
-                pass
+                        if execs['wait'][np.where(execs['key'] == programs[key2[0]])[0][0]] == 1:
+                        	os.system("tmux split-window -h \"{};read -n 1\"".format(full_command))
+                        else:
+                            os.system("tmux split-window -h \"{}\"".format(full_command))
+
 		        
 		 
         project_page(os.path.basename(os.getcwd()), config, file_types, execs)
@@ -156,13 +133,9 @@ def project_page(response, config, file_types, execs):
 
 
 
-    elif os.path.isdir(project_list[util.dict_to_int(response)]):
-        index = util.dict_to_int(response)
-        try:
-            os.chdir('./' + project_list[index])
-            project_page(project_list[index], config, file_types, execs)
-        except:
-            pass
-
+    elif os.path.isdir(project_list[ key[0]]):
+         os.chdir('./' + project_list[ key[0]])
+         project_page(project_list[ key[0]], config, file_types, execs)
+  
     else:
         return

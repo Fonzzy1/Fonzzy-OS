@@ -30,7 +30,6 @@ def mainpage():
     os.chdir(dname)
     os.system('clear')
     file_types = pandas.read_csv('./config/file_types.csv', header=None)
-    programs = pandas.read_csv('./config/programs.csv', header=None).values
     config = pandas.read_csv('./config/config.csv').values
     execs = pandas.read_csv('config/execs.psv',delimiter='\t')
     os.chdir(config[1][1])
@@ -50,18 +49,29 @@ def mainpage():
     # select the schedule items for current and next
     
     schedule = util.sql_to_dataframe('vw_schedule', 'timetable', password, config, where = 'date + interval hour(time) hour + interval minute(time) + length * 60 minute > now() ' )
-    current_schedule = schedule.iloc[0]
-    current_schedule_next = schedule.iloc[1]
+    try:
+        current_schedule = schedule.iloc[0]
+    except IndexError:
+        current_schedule = [] 
+    try:
+        current_schedule_next = schedule.iloc[1]
+    except IndexError:
+        current_schedule_next = [] 
     
     # Print the page
     pyfiglet.print_figlet(config[2][1] + '\'s Dashboard', colors=config[3][1])
 
-    print(
-        time.strftime("%Y-%m-%d %H:%M", time.localtime())  + '\n\n' +
-        'Current Job: ' + current_task[1] + ' ' + current_task[2] + '\n' +
-        'Next Event: ' + current_schedule[1] + ' - ' + current_schedule[2] + ' at ' + str(current_schedule[4])[7:15] + ' on ' + current_schedule[3].strftime('%a') + '\n' +
-        'Coming Up: ' + current_schedule_next[1] + ' - ' + current_schedule_next[2] + ' at ' + str(current_schedule_next[ 4])[7:15] + ' on ' + current_schedule_next[3].strftime('%a') +
-        '\n\n'
+    print( time.strftime("%Y-%m-%d %H:%M", time.localtime())  + '\n\n' + 'Current Job: ' + current_task[1] + ' ' + current_task[2] )
+    
+    try:
+        print('Next Event: ' + current_schedule[1] + ' - ' + current_schedule[2] + ' at ' + str(current_schedule[4])[7:15] + ' on ' + current_schedule[3].strftime('%a') )
+    except:
+        pass
+    try:
+        print('Coming Up: ' + current_schedule_next[1] + ' - ' + current_schedule_next[2] + ' at ' + str(current_schedule_next[ 4])[7:15] + ' on ' + current_schedule_next[3].strftime('%a'))
+    except:
+        pass
+    print('\n'
         'Time Table - t'
         '\n\n'
         'Finished Current Job - y'
@@ -104,7 +114,7 @@ def mainpage():
 
     # Programs page
     elif response == 'o':
-        resp = programs_page(programs, config)
+        resp = programs_page(config)
         mainpage()
 
 
