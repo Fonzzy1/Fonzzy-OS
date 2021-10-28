@@ -106,7 +106,6 @@ def fuzzy_find(ls,string):
     ## Encode the strings into shortest
     # Clean the strings
     ls = [x.lower() for x in ls]
-    print(ls)
     encode = [''] * len(ls)
     leftover = ls.copy()
     for i,e in enumerate(ls):
@@ -117,16 +116,11 @@ def fuzzy_find(ls,string):
     non_d =  [k for (k,v) in Counter(encode).items() if v > 1]
     ## Builidng stings one element at a time therefore  while loop
     while non_d:
-        print(encode)
-        print(non_d)
         for e in non_d:
             # Get the remaining string 
-            print(e)
             index = [i for (i,x) in enumerate(encode) if x == e]
-            print(index)
             rem_string = [ (i,x) for (i,x) in enumerate(leftover) if i in index] 
             cur_element_count = 0
-            print(rem_string)
             max_len = max([len(x) for (i,x) in rem_string])
             # Get first unique char
             j = -1
@@ -147,7 +141,6 @@ def fuzzy_find(ls,string):
     ## Now match encoding to current string
     string= re.sub('[^a-z0-9\.]','',string.lower())
     l = len(string)
-    print(l)
     match_encode = [(i,x[l:]) for (i,x) in enumerate(encode) if x[:l] == string]
     match_string= [(i,(x+' ')[x.index(string)+l]) for (i,x) in enumerate(ls) if string in x and i not in [i for (i,x) in match_encode]]
     match = match_encode + match_string
@@ -193,6 +186,7 @@ def fuzzy_loop(header, in_list):
             else:
                 x = ' '
                 col_array[i] = str((x.ljust(1))[0] + ': '+ in_list[i] )
+         
 
 
         cols  = math.ceil(len(col_array)/h)
@@ -215,21 +209,26 @@ def fuzzy_loop(header, in_list):
 
         if '\r' in key:
             c = True
-        if key == '\x1b\x1b':
+        elif key == '\x1b\x1b':
             return 'exit'
         elif key == '\x7f':
             ss = ss[0:len(ss) -1]
             q = 0
             hold = fuzzy_find(in_list,ss)
         elif key == '\x1b[A':
-            q -= 1        
+            q -= 1
+            q = q % len(index)        
         elif key == '\x1b[B':
             q += 1
+            q = q % len(index) 
         else:
             ss += key
             hold = fuzzy_find(in_list,ss)
+            q = 0
+    
     
     return [index[q][0],alt]
+    
 
 
         

@@ -111,17 +111,18 @@ def project_page(response, config, file_types, execs):
 
             else:
                 if not '\x1b' in key2:
-                        command = execs['value'][key2[0]]
+                        command = execs['value'][np.where(execs['key'] == programs[key2[0]])[0][0]]
                         full_command = command.format(file_name)
-                        os.system(full_command)
-                        if execs['wait'][key2[0]] == 1:
-                            readchar.readkey()                        
+                        os.system(full_command)  
+                        if execs['wait'][np.where(execs['key'] == programs[key2[0]])[0][0]] == 1:
+                            readchar.readkey()               
                 else:
-                        command = execs['value'][key2[0]]
+                        command = execs['value'][np.where(execs['key'] == programs[key2[0]])[0][0]]
                         full_command = command.format(file_name)
-                        os.system("tmux split-window -h \"{}\"".format(full_command))
-                        if execs['wait'][key2[0]] == 1:
-                            readchar.readkey()
+                        if execs['wait'][np.where(execs['key'] == programs[key2[0]])[0][0]] == 1:
+                        	os.system("tmux split-window -h \"{};read -n 1\"".format(full_command))
+                        else:
+                            os.system("tmux split-window -h \"{}\"".format(full_command))
 
 		        
 		 
