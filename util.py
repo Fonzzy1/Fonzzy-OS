@@ -169,7 +169,7 @@ def fuzzy_loop(header, in_list):
         print( '-' * w)
         index = hold.copy()
         
-        col_array = np.full(len(in_list),' '*50)
+        col_array = np.full(len(in_list),' '* (max(max([len(x) for x in in_list]),1)+20))
         
         
         try:
@@ -187,7 +187,6 @@ def fuzzy_loop(header, in_list):
                 x = ' '
                 col_array[i] = str((x.ljust(1))[0] + ': '+ in_list[i] )
          
-
 
         cols  = math.ceil(len(col_array)/h)
         rows = math.ceil(len(col_array)/cols)
@@ -274,7 +273,7 @@ def get_work(password, config):
     engine = sqlalchemy.create_engine(db_connection_str)
     connection = sqlalchemy.create_engine(db_connection_str)
     
-    work_index = engine.execute('select work_index()').fetchall()[0][0]
+    work_index = engine.execute('select 1 - sum(index_score) from vw_jobs').fetchall()[0][0]
 
     jobs = pandas.DataFrame(columns=['id', 'project', 'description', 'index_score'])
     ls = pandas.read_sql_table('tbl_jobs_work', con=connection)
