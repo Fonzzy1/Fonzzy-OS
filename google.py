@@ -63,12 +63,13 @@ def link_loop(url):
             paras = BeautifulSoup(htmlpage, features="lxml").find_all('p')
             for para in paras:
                 for link in para.find_all('a',attrs={'href': re.compile("/")}):
-                    link_url =  str(link.get('href'))
-                    if 'http' not in link_url:
-                        link_url = base_url+link_url
-                    content += '[' + link.text + '](' + link_url + ')\n'
-                    link_list.append(link_url)
-                    text_list.append(link.text)
+                    if re.sub('[^a-z0-9\.]','',link.text.lower()):
+                        link_url =  str(link.get('href'))
+                        if 'http' not in link_url:
+                            link_url = base_url+link_url
+                        content += '[' + link.text + '](' + link_url + ')\n'
+                        link_list.append(link_url)
+                        text_list.append(link.text)
             
             with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
                 tf.write(str.encode(content))

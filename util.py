@@ -119,7 +119,7 @@ def fuzzy_find(ls,string):
         for e in non_d:
             # Get the remaining string 
             index = [i for (i,x) in enumerate(encode) if x == e]
-            rem_string = [ (i,x) for (i,x) in enumerate(leftover) if i in index] 
+            rem_string = [ (i,x+str(i)) for (i,x) in enumerate(leftover) if i in index] 
             cur_element_count = 0
             max_len = max([len(x) for (i,x) in rem_string])
             # Get first unique char
@@ -127,7 +127,7 @@ def fuzzy_find(ls,string):
             while cur_element_count < 1:
                 j += 1
                 cur_element = [ x[1].ljust(max_len)[j] for x in rem_string]
-                cur_element_count =  len([k for (k,v) in Counter(cur_element).items() if v == 1])
+                cur_element_count =  len([k for (k,v) in Counter(cur_element).items() if v < len(cur_element) ])
             #Add unique char to the encoding string
             for (i,x) in rem_string:
                 try:

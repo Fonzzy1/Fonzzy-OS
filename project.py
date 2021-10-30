@@ -7,6 +7,8 @@ import pyfiglet
 import readchar
 import util
 import math
+from share import upload, email
+
 import subprocess
 from git import git_manager
 from program import programs_page
@@ -40,6 +42,8 @@ def project_page(response, config, file_types, execs):
     project_list.append('New')
     project_list.append('Back')
     project_list.append('Programs')
+    project_list.append('Upload')
+    project_list.append('Email')
     if is_git:    
         project_list.append('Git')
     
@@ -76,6 +80,14 @@ def project_page(response, config, file_types, execs):
             programs_page(config)
             project_page(os.path.basename(os.getcwd()), config, file_types, execs)
     
+        elif project_list[ key[0]] == 'Upload':
+            upload(os.path.basename(os.getcwd()))
+            project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+        
+        elif project_list[ key[0]] == 'Email':
+            email(os.path.basename(os.getcwd()))
+            project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+
     # open file with extension
     elif os.path.isfile(project_list[ key[0]]):
         file_name = project_list[ key[0]]
@@ -89,7 +101,8 @@ def project_page(response, config, file_types, execs):
         programs.append('Delete')
         programs.append('Rename')
         programs.append('Move')
-       
+        programs.append('Upload')
+        programs.append('Email')
         key2 = util.fuzzy_loop(file_name, programs)
         
         if key2 != 'exit':
@@ -108,6 +121,12 @@ def project_page(response, config, file_types, execs):
                 new_loc = input('New file destination: ')
                 shutil.move(file_name,new_loc)
             
+            elif programs[ key2[0]] == 'Upload':
+               upload(file_name)
+               
+            
+            elif programs[ key2[0]] == 'Email':
+                email(file_name)
 
             else:
                 if not '\x1b' in key2:
