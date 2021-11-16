@@ -136,7 +136,7 @@ def mainpage():
         files = [f for f in os.listdir('.') if os.path.isfile(f)]
         for f in files:
             util.encrypt(f,p)
-        os.system('exit')
+        os.system('tmux detach -P')
         quit(1)
 
     else:

@@ -32,7 +32,7 @@ def sm_done_recurring(task_id, password, config):
     db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
     connection = sqlalchemy.create_engine(db_connection_str)
     id = int("".join(filter(str.isdigit, task_id)))
-    query = 'Update tbl_jobs_recurring set last_date = last_date + interval redo_time week where id = ' + str(id)
+    query = 'Update tbl_jobs_recurring set last_date = last_date + interval redo_time * 7 day where id = ' + str(id)
     connection.execute(query)
 
 
