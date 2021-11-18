@@ -177,17 +177,18 @@ def fuzzy_loop(header, in_list):
         except ValueError:
             max_len = 1
         for i,e  in enumerate(in_list):
-            if i in [i for i,x in index]:
-                x = [x for j,x in index if j == i][0]
-                if i == index[q][0]:
-                    col_array[i] = str((x.ljust(1))[0] + ': \033[42;35m ' + in_list[i] + ' \033[m  ')
+            if e[0] != '.' or  '.'  in ss:     
+                if i in [i for i,x in index]:
+                    x = [x for j,x in index if j == i][0]
+                    if i == index[q][0]:
+                        col_array[i] = str((x.ljust(1))[0] + ': \033[42;35m ' + e + ' \033[m  ')
+                    else:
+                        col_array[i] = str((x.ljust(1))[0] + ': \033[44;33m ' + e + ' \033[m  ')
                 else:
-                    col_array[i] = str((x.ljust(1))[0] + ': \033[44;33m ' + in_list[i] + ' \033[m  ')
-            else:
-                x = ' '
-                col_array[i] = str((x.ljust(1))[0] + ': '+ in_list[i] )
+                    x = ' '
+                    col_array[i] = str((x.ljust(1))[0] + ': '+ e )
          
-
+        col_array = col_array[np.where(col_array != ' '* (max(max([len(x) for x in in_list]),1)+20))]
         cols  = math.ceil(len(col_array)/h)
         rows = math.ceil(len(col_array)/cols)
         pad = cols * rows - len(col_array)
