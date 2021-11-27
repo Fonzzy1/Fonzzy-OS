@@ -15,13 +15,14 @@ def start():
 
     """
 
+    os.system('eval $(op signin)')
     try:
         os.chdir('/home/fonzzy/Documents/ssh-mate/config')
         test = pandas.read_csv('config.csv')
         test.iloc[1,1]
     
     except IndexError:
-        p = getpass.getpass()
+        p = getpass.getpass(prompt = 'ssh-mate password')
     
         files = [f for f in os.listdir('.') if os.path.isfile(f)]
         for f in files:

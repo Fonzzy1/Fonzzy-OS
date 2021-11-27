@@ -109,7 +109,7 @@ def mainpage():
             util.sm_done_recurring(current_task[0], password, config)
             mainpage()
         elif current_task[0][1] == 'w':
-            util.done_work(current_task[2], password, config)
+            util.done_work(current_task[0], password, config)
             mainpage()
 
     # Programs page

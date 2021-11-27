@@ -144,7 +144,7 @@ def fuzzy_find(ls,string):
     match_encode = [(i,x[l:]) for (i,x) in enumerate(encode) if x[:l] == string]
     match_string= [(i,(x+' ')[x.index(string)+l]) for (i,x) in enumerate(ls) if string in x and i not in [i for (i,x) in match_encode]]
     match = match_encode + match_string
-    return match
+    return sorted(match,key = len)
     
 def fuzzy_loop(header, in_list):
 
@@ -215,10 +215,7 @@ def fuzzy_loop(header, in_list):
             ss = ss[0:len(ss) -1]
             q = 0
             hold = fuzzy_find(in_list,ss)
-        elif key == '\x1b[A':
-            q -= 1
-            q = q % len(index)        
-        elif key == '\x1b[B':
+        elif key == '\t':
             q += 1
             q = q % len(index) 
         else:

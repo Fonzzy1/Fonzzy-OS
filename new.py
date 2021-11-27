@@ -47,7 +47,7 @@ def new_js(password, config):
             day = input('Day: ')
             time = input('Time: ')
             length =  input('Length: ')
-            connection.execute('insert into tbl_schedule_one_off(project,description, day, time, length) values (\''+project+ '\',\''+desc+ '\',\''+day+ '\',\''+time+ '\',\''+length+ '\')')
+            connection.execute('insert into tbl_schedule_recurring(project,description, day, time, length) values (\''+project+ '\',\''+desc+ '\',\''+day+ '\',\''+time+ '\',\''+length+ '\')')
     if type =='w':
         desc = input('Description: ')
         connection.execute('insert into tbl_jobs_work(description) values (\''+desc+ '\')')
