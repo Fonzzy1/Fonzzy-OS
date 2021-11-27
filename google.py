@@ -27,7 +27,7 @@ def main():
         elif '.pdf' in url:
             	p=subprocess.Popen('wget -O .tempdownload {};mupdf -I  .tempdownload ; rm .tempdownload'.format(url),shell = True)
         else:           	
-            os.system('google-chrome {}'.format(url))
+            subprocess.Popen('google-chrome {}'.format(url),shell = True)
             
 
 if __name__ == '__main__':

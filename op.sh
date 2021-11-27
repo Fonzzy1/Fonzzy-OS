@@ -1,4 +1,8 @@
+eval $(op signin)
+
+echo 'Search'
 read searchterm
+
 
 op list items |jq -c '.[]' - | while read i
 do
@@ -28,3 +32,4 @@ do
         echo -e " ${name}\t${username}\t${password}\t${url}" | awk '{ printf "%-30s %-25s %-25s %-25s\n", $1, $2, $3, $4} '
     fi
 done
+read  -n 1
