@@ -26,7 +26,7 @@ def programs_page(config):
     if key == 'exit':
         return
         
-    elif '\x1b' in key:
+    elif not '\x1b' in key:
         call = call_list[key[0]]    
         os.system("tmux split-window -h \"{}\"".format(call))
     else:

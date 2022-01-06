@@ -76,9 +76,9 @@ def mainpage():
         '\n\n'
         'Finished Current Job - y'
         '\n\n'
-        'Other Projects - p'
+        'Other Projects - o'
         '\n\n'
-        'Programs - o'
+        'Programs - p'
         '\n\n'
         'New - n'
         '\n\n'
@@ -113,12 +113,12 @@ def mainpage():
             mainpage()
 
     # Programs page
-    elif response == 'o':
+    elif response == 'p':
         resp = programs_page(config)
         mainpage()
 
 
-    elif response == 'p':
+    elif response == 'o':
         initial_head = config[2][1] + '\'s Projects'
         project_page(initial_head, config, file_types, execs)
         mainpage()

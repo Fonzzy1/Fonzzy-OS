@@ -66,19 +66,15 @@ def refresh(password, config):
     response = readchar.readkey()
     
     try:
-    	index = int(response)
-    	id = total_jobs.iloc[index][0]
-    	
-    	print(id)
-    	print(index)
-    	print(total_jobs[0:10])
-    	if id[1] == 'd':
+        index = int(response)
+        id = total_jobs.iloc[index][0]
+        if id[1] == 'd':
             util.sm_done_due(id, password, config)
-    	elif id[1] == 'n':
+        elif id[1] == 'n':
             util.sm_done_not_due(id, password, config)
-    	elif id[1] == 'r':
+        elif id[1] == 'r':
             util.sm_done_recurring(id, password, config)
-    	elif id[1] == 'w':
+        elif id[1] == 'w':
             util.done_work(id, password, config)
 
     	 

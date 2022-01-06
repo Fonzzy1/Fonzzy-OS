@@ -15,7 +15,6 @@ def start():
 
     """
 
-    os.system('eval $(op signin)')
     try:
         os.chdir('/home/fonzzy/Documents/ssh-mate/config')
         test = pandas.read_csv('config.csv')

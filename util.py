@@ -1,8 +1,10 @@
+import requests
+import json
+import pandas
 import string
 from collections import Counter
 import re
 import numpy as np
-import pandas
 import sqlalchemy
 import notion.client
 from cryptography.fernet import Fernet
@@ -264,6 +266,42 @@ def dict_to_int(str):
     return index
 
 
+def get_notion(config):
+    owner_id = '9ab57636-5911-4b13-bc66-1996c15415fd'
+    token = 'secret_qhWtH3D8WCk13XDf4ET9I4yVf9CDlz9RNE6sLXdRr96'
+    databaseId = '330d0068230e4e168cbede44aac06d52'
+
+    headers = {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json",
+        "Notion-Version": "2021-08-16"
+    }
+
+    data = json.dumps(
+            {
+            "sorts" : [
+                {"property": 'Priority', 'direction' :'ascending'},
+                {"property" : 'Due Date',  'direction': 'ascending'}
+                ],
+            "filter": {'and':[
+                { "property": "Owner", "people": { "contains": owner_id } } ,
+                {"property": "Status", "select": {"does_not_equal" : "done"}}
+                ] }
+            })
+
+    readURL = f"https://api.notion.com/v1/databases/{databaseId}/query"
+    res = requests.request("POST", readURL, headers = headers, data = data)
+    results = json.loads(res.content)['results']
+
+    df = pandas.DataFrame(columns = ['id','Name','URL'])
+
+    for page in results:
+        id = page['id']
+        Name = page['properties']['Name']['title'][0]['text']['content']
+        URL = page['url']
+        df.loc[len(df)] = [id,Name,URL]
+    return df 
+
 def get_work(password, config):
     SQL_Username = config[0][1]
     SQL_driver = config[4][1]
@@ -274,24 +312,22 @@ def get_work(password, config):
     work_index = engine.execute('select 1 - sum(index_score) from vw_jobs').fetchall()[0][0]
 
     jobs = pandas.DataFrame(columns=['id', 'project', 'description', 'index_score'])
-    ls = pandas.read_sql_table('tbl_jobs_work', con=connection)
-    
+    ls = get_notion(config) 
     for index,row in ls.iterrows():
-        jobs.loc[len(jobs)] = ['jw_'+str(row['id']),'Work',row['description'],work_index]
-
+        if index == 0:
+            jobs.loc[len(jobs)] = ['jw_'+str(row['id']),'Work',row['Name'],work_index]
+        else:
+            jobs.loc[len(jobs)] = ['jw_'+str(row['id']),'Work',row['Name'],0]
 
     return jobs
 
 
 def done_work(id, password, config):
-    SQL_Username = config[0][1]
-    SQL_driver = config[4][1]
-    db_connection_str = SQL_driver + '://' + SQL_Username + ':' + password + '@localhost/timetable'
-    connection = sqlalchemy.create_engine(db_connection_str)
-    task_id = int("".join(filter(str.isdigit, id)))
-    query = 'delete from tbl_jobs_work where id = ' + str(task_id)
-    connection.execute(query)
-        
+    task_id = id[3:]
+    ls = get_notion(config)
+    os.system('clear') 
+    print(ls['URL'][np.where(ls['id'] == task_id)[0][0]])
+    readchar.readkey()
         
 def encrypt(filename, p):
     """

@@ -7,7 +7,7 @@ import pyfiglet
 import readchar
 import util
 import math
-from share import upload, email
+from share import  email
 
 import subprocess
 from git import git_manager
@@ -42,7 +42,8 @@ def project_page(response, config, file_types, execs):
     project_list.append('New')
     project_list.append('Back')
     project_list.append('Programs')
-    project_list.append('Upload')
+    project_list.append('Delete')
+    project_list.append('Move')
     project_list.append('Email')
     if is_git:    
         project_list.append('Git')
@@ -80,10 +81,22 @@ def project_page(response, config, file_types, execs):
             programs_page(config)
             project_page(os.path.basename(os.getcwd()), config, file_types, execs)
     
-        elif project_list[ key[0]] == 'Upload':
-            upload(os.path.basename(os.getcwd()))
+        elif project_list[ key[0]] == 'Move':
+            newloc =  os.path.abspath(input("New file location: "))
+            oldloc = os.getcwd() 
+            os.mkdir(newloc)
+            os.chdir('..')
+            os.system('mv  ' + oldloc + '/* ' + newloc )
             project_page(os.path.basename(os.getcwd()), config, file_types, execs)
         
+        elif project_list[ key[0]] == 'Delete':
+            conf = input('Confirm deletion of ' + os.getcwd() + ': ')
+            if conf.lower() == 'y':
+                loc = os.getcwd()
+                os.chdir('..')
+                os.system('rm -rf ' + loc)
+            project_page(os.path.basename(os.getcwd()), config, file_types, execs)
+
         elif project_list[ key[0]] == 'Email':
             email(os.path.basename(os.getcwd()))
             project_page(os.path.basename(os.getcwd()), config, file_types, execs)
@@ -99,7 +112,6 @@ def project_page(response, config, file_types, execs):
             programs = execs['key'].tolist()
 
         programs.append('Delete')
-        programs.append('Rename')
         programs.append('Move')
         programs.append('Upload')
         programs.append('Email')
@@ -113,13 +125,10 @@ def project_page(response, config, file_types, execs):
                 if conf.lower() == 'y':
                     os.remove(file_name)
 
-            elif programs[ key2[0]] == 'Rename':
-                new_name = input('Change file name to: ')
-                os.rename(file_name, new_name)
 
             elif programs[ key2[0]] == 'Move':
                 new_loc = input('New file destination: ')
-                shutil.move(file_name,new_loc)
+                os.system('mv ' +file_name + ' ' +new_loc)
             
             elif programs[ key2[0]] == 'Upload':
                upload(file_name)
@@ -129,7 +138,7 @@ def project_page(response, config, file_types, execs):
                 email(file_name)
 
             else:
-                if not '\x1b' in key2:
+                if  '\x1b' in key2:
                         command = execs['value'][np.where(execs['key'] == programs[key2[0]])[0][0]]
                         full_command = command.format(file_name)
                         os.system(full_command)  
